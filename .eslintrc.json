@@ -1,0 +1,8 @@
+{
+  "extends": "./node_modules/mwts/",
+  "ignorePatterns": ["node_modules", "dist", "fixtures"],
+  "env": {
+    "mocha": true
+  },
+  "plugins": ["jest"]
+}
