@@ -41,6 +41,7 @@ cli
     default: true,
   })
   .option('--file-name [fileName]', 'Generate light template')
+  .option('--dry-run [dryRun]', 'Generate light template')
   .action(async (name, options) => {
     // if !name inquirer.prompt
     // interactive mode
