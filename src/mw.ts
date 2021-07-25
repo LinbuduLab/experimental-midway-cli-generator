@@ -1,11 +1,10 @@
 import { Provide } from "@midwayjs/decorator";
-
-import { IWebMiddleware } from "@midwayjs/koa";
-import ThirdPartyLib from "ThirdPartyLib";
+import { IMidwayExpressContext, IWebMiddleware } from "@midwayjs/express";
+import { NextFunction, Request, Response } from "express";
 
 @Provide("Mw")
 export default class Mw implements IWebMiddleware {
   resolve() {
-    return ThirdPartyLib();
+    return async (req: Request, res: Response, next: NextFunction) => {};
   }
 }

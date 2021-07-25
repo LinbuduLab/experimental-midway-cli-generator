@@ -101,7 +101,10 @@ export const injectMiddlewareGenerator = (cli: CAC) => {
       const template = EJSCompile(
         tmp,
         {}
-      )({ name: middlewareNames.className, useExternalLib: true });
+      )({
+        name: middlewareNames.className,
+        useExternalLib: options.useExternalLib,
+      });
 
       const outputContent = options.format
         ? prettier.format(template, { parser: 'typescript' })
