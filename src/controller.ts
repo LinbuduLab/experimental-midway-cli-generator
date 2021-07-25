@@ -8,7 +8,7 @@ import { capitalCase } from './lib/case/capital-case';
 import { dotCase } from './lib/case/dot-case';
 import { lowerCase } from './lib/case/lower-case';
 import * as prettier from 'prettier';
-import { ensureBooleanType } from './lib/helper';
+import { ensureBooleanType, inputPromptStringValue } from './lib/helper';
 
 export const injectControllerGenerator = (cli: CAC) => {
   cli
@@ -21,17 +21,25 @@ export const injectControllerGenerator = (cli: CAC) => {
       default: true,
     })
     // use dot name like app.controller.ts
-    .option('--dot-name [dotName]', 'Generate light template', {
+    .option('--dot-name [dotName]', 'Use dot file name', {
       default: true,
     })
-    .option('--format [format]', 'Generate light template', {
-      default: true,
-    })
-    .option('--override [override]', 'Generate light template', {
-      default: true,
-    })
-    .option('--file-name [fileName]', 'Generate light template')
-    .option('--dry-run [dryRun]', 'Generate light template')
+    .option(
+      '--format [format]',
+      'Format generated content before write into disk',
+      {
+        default: true,
+      }
+    )
+    .option(
+      '--override [override]',
+      'Override on file with same target name existing',
+      {
+        default: true,
+      }
+    )
+    .option('--file-name [fileName]', 'File name for generated')
+    .option('--dry-run [dryRun]', 'Dry run to see what is happening')
     // TODO: interactive mode:  ignore all previous options
     .action(async (name, options) => {
       options.light = ensureBooleanType(options.light);
@@ -39,20 +47,10 @@ export const injectControllerGenerator = (cli: CAC) => {
       options.format = ensureBooleanType(options.format);
       options.override = ensureBooleanType(options.override);
 
-      let promptedName: string;
-
       if (!name) {
-        promptedName = await inquirer.prompt([
-          {
-            type: 'input',
-            name: 'name',
-          },
-        ]);
-
-        name = promptedName['name'];
+        name = await inputPromptStringValue('name');
+        console.log('name: ', name);
       }
-
-      console.log('name: ', name);
 
       console.log('options: ', options);
 
