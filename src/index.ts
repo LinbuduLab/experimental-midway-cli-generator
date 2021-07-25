@@ -12,6 +12,7 @@
 import cac from 'cac';
 import * as path from 'path';
 import * as fs from 'fs-extra';
+import * as inquirer from 'inquirer';
 import { compile as EJSCompile } from 'ejs';
 
 import { capitalCase } from './lib/case/capital-case';
@@ -20,6 +21,8 @@ import { lowerCase } from './lib/case/lower-case';
 import * as prettier from 'prettier';
 
 const cli = cac();
+
+const ensureBooleanType = (value: boolean | string) => value !== 'false';
 
 cli
   .command('controller [name]', 'Generate controller', {
@@ -42,36 +45,58 @@ cli
   })
   .option('--file-name [fileName]', 'Generate light template')
   .option('--dry-run [dryRun]', 'Generate light template')
+  // TODO: interactive mode:  ignore all previous options
   .action(async (name, options) => {
-    // if !name inquirer.prompt
-    // interactive mode
+    options.light = ensureBooleanType(options.light);
+    options.dotName = ensureBooleanType(options.dotName);
+    options.format = ensureBooleanType(options.format);
+    options.override = ensureBooleanType(options.override);
+
+    let promptedName: string;
+
+    if (!name) {
+      promptedName = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'name',
+        },
+      ]);
+
+      name = promptedName['name'];
+    }
+
     console.log('name: ', name);
+
     console.log('options: ', options);
 
     options.fileName = options.fileName
       ? lowerCase(options.fileName)
       : lowerCase(name);
 
-    const exist = fs.existsSync(
-      path.resolve(__dirname, `${options.fileName}.ts`)
-    );
+    const fileName = options.dotName
+      ? `${dotCase(options.fileName)}.controller`
+      : lowerCase(options.fileName);
+
+    const exist = fs.existsSync(path.resolve(__dirname, `${fileName}.ts`));
 
     if (exist && !options.override) {
       console.log('exist');
       process.exit(0);
+    } else if (exist) {
+      console.log('overriding exist file');
     }
 
     const tmp = fs.readFileSync(
-      path.join(__dirname, './templates/controller.ts.ejs'),
+      path.join(
+        __dirname,
+        `./templates/${
+          options.light ? 'controller.ts.ejs' : 'controller-full.ts.ejs'
+        }`
+      ),
       { encoding: 'utf8' }
     );
 
     const template = EJSCompile(tmp, {})({ name: capitalCase(name) });
-    // console.log('template: ', template);
-
-    const fileName = options.dotName
-      ? `${dotCase(name)}.controller`
-      : lowerCase(name);
 
     const outputContent = options.format
       ? prettier.format(template, { parser: 'typescript' })
@@ -80,8 +105,6 @@ cli
     fs.writeFileSync(path.resolve(__dirname, `${fileName}.ts`), outputContent);
   });
 
-// cli.version('0.1.0');
-
-cli.parse();
+const parsed = cli.parse();
 
 // console.log(JSON.stringify(parsed, null, 2));
