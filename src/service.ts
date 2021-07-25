@@ -7,16 +7,12 @@ import * as prettier from 'prettier';
 import { ensureBooleanType, inputPromptStringValue } from './lib/helper';
 import { names } from './lib/helper';
 
-export const injectControllerGenerator = (cli: CAC) => {
+export const injectServiceGenerator = (cli: CAC) => {
   cli
-    .command('controller [name]', 'Generate controller', {
+    .command('service [name]', 'Generate service', {
       allowUnknownOptions: true,
     })
-    .alias('c')
-    // generate minimal template file
-    .option('--light [light]', 'Generate light template', {
-      default: true,
-    })
+    .alias('s')
     // use dot name like app.controller.ts
     .option('--dot-name [dotName]', 'Use dot file name', {
       default: true,
@@ -37,24 +33,22 @@ export const injectControllerGenerator = (cli: CAC) => {
     )
     .option('--file-name [fileName]', 'File name for generated')
     .option('--dry-run [dryRun]', 'Dry run to see what is happening')
-    // TODO: interactive mode:  ignore all previous options
     .action(async (name, options) => {
-      options.light = ensureBooleanType(options.light);
       options.dotName = ensureBooleanType(options.dotName);
       options.format = ensureBooleanType(options.format);
       options.override = ensureBooleanType(options.override);
 
       if (!name) {
-        name = await inputPromptStringValue('controller name');
+        name = await inputPromptStringValue('service name');
       }
 
-      const controllerNames = names(name);
+      const serviceNames = names(name);
       const fileNameNames = names(options.fileName ?? name);
 
       console.log('options: ', options);
 
       const fileName = options.dotName
-        ? `${fileNameNames.dotName}.controller`
+        ? `${fileNameNames.dotName}.service`
         : fileNameNames.fileName;
 
       const exist = fs.existsSync(path.resolve(__dirname, `${fileName}.ts`));
@@ -67,16 +61,11 @@ export const injectControllerGenerator = (cli: CAC) => {
       }
 
       const tmp = fs.readFileSync(
-        path.join(
-          __dirname,
-          `./templates/controller/${
-            options.light ? 'controller.ts.ejs' : 'controller-full.ts.ejs'
-          }`
-        ),
+        path.join(__dirname, `./templates/service/${'service.ts.ejs'}`),
         { encoding: 'utf8' }
       );
 
-      const template = EJSCompile(tmp, {})({ name: controllerNames.className });
+      const template = EJSCompile(tmp, {})({ name: serviceNames.className });
 
       const outputContent = options.format
         ? prettier.format(template, { parser: 'typescript' })
