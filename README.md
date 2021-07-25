@@ -16,3 +16,9 @@ Experimental works for Midway-CLI generator (fragments / components)
 - Prisma
 - Cache
 - Swagger
+
+## Future
+
+- Virtual-File based dryRun mode.
+- JSON Schema based schematics customization.
+- Codemod enhancement.
