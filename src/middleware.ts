@@ -47,6 +47,13 @@ export const injectMiddlewareGenerator = (cli: CAC) => {
       default: 'egg',
     })
     .option(
+      '--functional [functional]',
+      'Use functional middleware(EggJS only)',
+      {
+        default: false,
+      }
+    )
+    .option(
       '--format [format]',
       'Format generated content before write into disk',
       {
@@ -64,10 +71,10 @@ export const injectMiddlewareGenerator = (cli: CAC) => {
     .option('--dry-run [dryRun]', 'Dry run to see what is happening')
     // TODO: interactive mode:  ignore all previous options
     .action(async (name, options) => {
-      console.log('options: ', options);
       options.useExternaLib = ensureBooleanType(options.useExternaLib);
       options.format = ensureBooleanType(options.format);
       options.override = ensureBooleanType(options.override);
+      options.functional = ensureBooleanType(options.functional);
 
       if (!name) {
         name = await inputPromptStringValue('middleware name');
@@ -104,6 +111,7 @@ export const injectMiddlewareGenerator = (cli: CAC) => {
       )({
         name: middlewareNames.className,
         useExternalLib: options.useExternalLib,
+        functional: options.functional,
       });
 
       const outputContent = options.format

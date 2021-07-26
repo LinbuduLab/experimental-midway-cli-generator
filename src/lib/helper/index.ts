@@ -4,7 +4,13 @@ import { dotCase } from '../case/dot-case';
 import { lowerCase } from '../case/lower-case';
 import { constantCase } from '../case/constant-case';
 
-export const ensureBooleanType = (value: boolean | string) => value !== 'false';
+// true -> true
+// "true" -> true
+// "false" -> false
+// false -> false
+export const ensureBooleanType = (value: boolean | string) => {
+  return value === true || value === 'true';
+};
 
 export const inputPromptStringValue = async (
   identifier: string
