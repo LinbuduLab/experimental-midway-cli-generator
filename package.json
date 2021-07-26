@@ -16,8 +16,10 @@
     "chalk": "^4.1.1",
     "commander": "^8.0.0",
     "ejs": "^3.1.6",
+    "find-up": "^5.0.0",
     "fs-extra": "^10.0.0",
     "inquirer": "^8.1.2",
+    "jsonfile": "^6.1.0",
     "log-symbols": "^5.0.0",
     "mwts": "^1.2.2",
     "ora": "^5.4.1",
@@ -31,6 +33,7 @@
     "@types/ejs": "^3.0.7",
     "@types/fs-extra": "^9.0.12",
     "@types/inquirer": "^7.3.3",
+    "@types/jsonfile": "^6.0.1",
     "@types/node": "^16.4.1",
     "@types/prettier": "^2.3.2",
     "@types/yargs": "^17.0.2"

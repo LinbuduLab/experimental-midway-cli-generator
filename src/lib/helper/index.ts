@@ -13,12 +13,14 @@ export const ensureBooleanType = (value: boolean | string) => {
 };
 
 export const inputPromptStringValue = async (
-  identifier: string
+  identifier: string,
+  defaultValue?: string | null
 ): Promise<string> => {
   const promptedValue = await inquirer.prompt([
     {
       type: 'input',
       name: identifier,
+      default: defaultValue ?? null,
     },
   ]);
 
