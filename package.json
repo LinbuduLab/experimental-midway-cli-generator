@@ -9,7 +9,8 @@
     "mw": "./bin/mw.js"
   },
   "scripts": {
-    "dev": "tsnd --respawn --transpile-only  ./src/index.ts"
+    "dev": "tsnd --respawn --transpile-only  ./src/index.ts",
+    "ast": "tsnd --respawn --transpile-only ./src/lib/ast/core.ts"
   },
   "dependencies": {
     "cac": "^6.7.3",
