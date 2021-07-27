@@ -7,6 +7,8 @@ import {
 import * as path from 'path';
 import * as strip from 'strip-comments';
 
+import { addImportDeclaration, ImportType } from './add-import';
+
 const project = new Project();
 
 const source = project.addSourceFileAtPath(
@@ -25,9 +27,9 @@ const source = project.addSourceFileAtPath(
 // -----
 // 直接新增 export const orm
 // addExport addXX 好像不行...?
-const variableStatement = source.addStatements('export const orm = {}');
+// const variableStatement = source.addStatements('export const orm = {}');
 
-project.saveSync();
+// project.saveSync();
 
 // -----
 
@@ -87,16 +89,9 @@ const x = strip(s.getText());
 
 // console.log('t21: ', t21);
 
-// import * as orm
-// const importDeclaration = source.addImportDeclaration({
-//   namespaceImport: 'orm',
-//   moduleSpecifier: '@midwayjs/orm',
-// });
-
-// import { EntityModel }
-// const importDeclaration = source.addImportDeclaration({
-//   namedImports: ['EntityModel'],
-//   moduleSpecifier: '@midwayjs/orm',
-// });
-
-// project.saveSync();
+addImportDeclaration(
+  '../../base/config-origin/config.default.ts',
+  'orm',
+  '@midwayjs/orm',
+  ImportType.NAMESPACE_IMPORT
+);

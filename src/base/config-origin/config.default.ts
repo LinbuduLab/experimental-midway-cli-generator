@@ -20,8 +20,5 @@ export default (appInfo: EggAppInfo) => {
   // config.security = {
   //   csrf: false,
   // };
-  config.orm = {};
-
   return config;
 };
-export const orm = {}
