@@ -1,6 +1,7 @@
 import {
   ArrowFunction,
   Project,
+  SourceFile,
   SyntaxKind,
   VariableDeclarationKind,
 } from 'ts-morph';
@@ -14,43 +15,32 @@ export enum ImportType {
 }
 
 export function addImportDeclaration(
-  filePath: string,
+  source: SourceFile,
   namespace: string,
   moduleSpecifier: string,
   importType: ImportType.NAMESPACE_IMPORT
 ): void;
 
 export function addImportDeclaration(
-  filePath: string,
+  source: SourceFile,
   imports: string[],
   moduleSpecifier: string,
   importType: ImportType.NAMED_IMPORTS
 ): void;
 
 export function addImportDeclaration(
-  filePath: string,
+  source: SourceFile,
   defaultImport: string,
   moduleSpecifier: string,
   importType: ImportType.DEFAULT_IMPORT
 ): void;
 
 export function addImportDeclaration(
-  filePath: string,
+  source: SourceFile,
   imports: string | string[],
   moduleSpecifier: string,
   importType: ImportType
 ) {
-  const project = new Project();
-
-  const source = project.addSourceFileAtPath(
-    path.isAbsolute(filePath) ? filePath : path.resolve(__dirname, filePath)
-  );
-
-  console.log(
-    'path.isAbsolute(filePath) ? filePath : path.resolve(__dirname, filePath): ',
-    path.isAbsolute(filePath) ? filePath : path.resolve(__dirname, filePath)
-  );
-
   if (importType === ImportType.DEFAULT_IMPORT) {
     source.addImportDeclaration({
       defaultImport: imports as string,
