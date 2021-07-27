@@ -5,12 +5,16 @@ import { injectServiceGenerator } from './service';
 import { injectMiddlewareGenerator } from './middleware';
 import { injectDebuggerGenerator } from './debug';
 
+import { injectTypeORMGenerator } from './typeorm';
+
 const cli = cac();
 
 injectControllerGenerator(cli);
 injectServiceGenerator(cli);
 injectMiddlewareGenerator(cli);
 injectDebuggerGenerator(cli);
+
+injectTypeORMGenerator(cli);
 
 const parsed = cli.parse();
 

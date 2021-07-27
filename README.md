@@ -2,6 +2,8 @@
 
 Experimental works for Midway-CLI generator (fragments / components)
 
+- negated option
+
 ## Fragments
 
 - Controller
