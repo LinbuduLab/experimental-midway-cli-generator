@@ -9,12 +9,19 @@ import * as strip from 'strip-comments';
 
 import { addImportDeclaration, ImportType } from './add-import';
 import { setConfigKey } from './set-config-key';
+import { tmp } from './configuration';
 
 const project = new Project();
 
-const source = project.addSourceFileAtPath(
+const configSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/config-origin/config.default.ts')
 );
+
+const configurationSource = project.addSourceFileAtPath(
+  path.resolve(__dirname, '../../base/midway-configuration-origin.ts')
+);
+
+tmp(configurationSource);
 
 // 拿到默认导出 √
 // 拿到箭头函数 √
