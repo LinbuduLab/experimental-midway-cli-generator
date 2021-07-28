@@ -31,19 +31,29 @@ export const injectTypeORMGenerator = (cli: CAC) => {
     .command('orm <type> [name]', 'TypeORM related', {
       allowUnknownOptions: true,
     })
+    // entity specified option
     .option('--active-record [activeRecord]', 'Use active record mode', {
       default: true,
     })
     .option(
-      '--format [format]',
-      'Format generated content before write into disk',
+      '--relation [relation]',
+      '[Entity generator only] create relation entity',
       {
         default: true,
       }
     )
+    // subscriber specified option
+    // .option('--listen-all [listenAll]', 'Listen to all entities', {
+    //   default: true,
+    // })
+    .option('--transaction [transaction]', 'Listen to transactions', {
+      default: true,
+    })
+
+    // ---
     .option(
-      '--relation [relation]',
-      '[Entity generator only] create relation entity',
+      '--format [format]',
+      'Format generated content before write into disk',
       {
         default: true,
       }
@@ -61,6 +71,8 @@ export const injectTypeORMGenerator = (cli: CAC) => {
       options.activeRecord = ensureBooleanType(options.activeRecord);
       options.relation = ensureBooleanType(options.relation);
       options.dotName = ensureBooleanType(options.dotName);
+      options.transaction = ensureBooleanType(options.transaction);
+
       console.log('options: ', options);
 
       let finalFileName: string;
@@ -113,18 +125,11 @@ export const injectTypeORMGenerator = (cli: CAC) => {
 
         case TypeORMGenerator.SUBSCRIBER:
           const writeFileName = options.dotName
-            ? `${fileNameNames.fileName}.entity`
+            ? `${fileNameNames.fileName}.subscriber`
             : fileNameNames.fileName;
 
           const tmp = fs.readFileSync(
-            path.join(
-              __dirname,
-              `./templates/typeorm/${
-                options.relation
-                  ? 'plain-entity.ts.ejs'
-                  : 'relation-entity.ts.ejs'
-              }`
-            ),
+            path.join(__dirname, './templates/typeorm/subscriber.ts.ejs'),
             { encoding: 'utf8' }
           );
 
@@ -132,8 +137,8 @@ export const injectTypeORMGenerator = (cli: CAC) => {
             tmp,
             {}
           )({
-            entity: nameNames.className,
-            activeRecord: options.activeRecord,
+            subscriber: nameNames.className,
+            transaction: options.transaction,
           });
 
           const outputContent = options.format
