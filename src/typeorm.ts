@@ -13,7 +13,7 @@ import { names } from './lib/helper';
 
 // entity:
 // plain
-// relationed
+// relation
 
 // subscriber:
 //
@@ -42,8 +42,8 @@ export const injectTypeORMGenerator = (cli: CAC) => {
       }
     )
     .option(
-      '--relationed [relationed]',
-      '[Entity generator only] create relationed entity',
+      '--relation [relation]',
+      '[Entity generator only] create relation entity',
       {
         default: true,
       }
@@ -59,11 +59,9 @@ export const injectTypeORMGenerator = (cli: CAC) => {
         process.exit(0);
       }
       options.activeRecord = ensureBooleanType(options.activeRecord);
-      options.relationed = ensureBooleanType(options.relationed);
+      options.relation = ensureBooleanType(options.relation);
       options.dotName = ensureBooleanType(options.dotName);
       console.log('options: ', options);
-      console.log('name: ', name);
-      console.log('type: ', type);
 
       let finalFileName: string;
       let finalFileContent: string;
@@ -80,6 +78,40 @@ export const injectTypeORMGenerator = (cli: CAC) => {
           break;
 
         case TypeORMGenerator.ENTITY:
+          const writeFileNameEntity = options.dotName
+            ? `${fileNameNames.fileName}.entity`
+            : fileNameNames.fileName;
+
+          const tmpEntity = fs.readFileSync(
+            path.join(
+              __dirname,
+              `./templates/typeorm/${
+                options.relation
+                  ? 'relation-entity.ts.ejs'
+                  : 'plain-entity.ts.ejs'
+              }`
+            ),
+            { encoding: 'utf8' }
+          );
+
+          const templateEntity = EJSCompile(
+            tmpEntity,
+            {}
+          )({
+            entity: nameNames.className,
+            activeRecord: options.activeRecord,
+          });
+
+          const outputContentEntity = options.format
+            ? prettier.format(templateEntity, { parser: 'typescript' })
+            : templateEntity;
+
+          finalFileName = `${writeFileNameEntity}.ts`;
+          finalFileContent = outputContentEntity;
+
+          break;
+
+        case TypeORMGenerator.SUBSCRIBER:
           const writeFileName = options.dotName
             ? `${fileNameNames.fileName}.entity`
             : fileNameNames.fileName;
@@ -88,9 +120,9 @@ export const injectTypeORMGenerator = (cli: CAC) => {
             path.join(
               __dirname,
               `./templates/typeorm/${
-                options.relationed
+                options.relation
                   ? 'plain-entity.ts.ejs'
-                  : 'relationed-entity.ts.ejs'
+                  : 'relation-entity.ts.ejs'
               }`
             ),
             { encoding: 'utf8' }
@@ -111,18 +143,8 @@ export const injectTypeORMGenerator = (cli: CAC) => {
           finalFileName = `${writeFileName}.ts`;
           finalFileContent = outputContent;
 
-          // fs.writeFileSync(
-          //   path.resolve(__dirname, `${writeFileName}.ts`),
-          //   outputContent
-          // );
-
-          break;
-
-        case TypeORMGenerator.SUBSCRIBER:
           break;
       }
-
-      console.log('??');
 
       fs.writeFileSync(
         path.resolve(__dirname, finalFileName),
