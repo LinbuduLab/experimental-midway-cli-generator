@@ -6,6 +6,7 @@ import { injectMiddlewareGenerator } from './middleware';
 import { injectDebuggerGenerator } from './debug';
 
 import { injectTypeORMGenerator } from './typeorm';
+import { injectTypeGraphQLGenerator } from './type-graphql';
 
 const cli = cac();
 
@@ -15,6 +16,7 @@ injectMiddlewareGenerator(cli);
 injectDebuggerGenerator(cli);
 
 injectTypeORMGenerator(cli);
+injectTypeGraphQLGenerator(cli);
 
 const parsed = cli.parse();
 

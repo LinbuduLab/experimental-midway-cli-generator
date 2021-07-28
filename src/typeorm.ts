@@ -73,8 +73,6 @@ export const injectTypeORMGenerator = (cli: CAC) => {
       options.dotName = ensureBooleanType(options.dotName);
       options.transaction = ensureBooleanType(options.transaction);
 
-      console.log('options: ', options);
-
       let finalFileName: string;
       let finalFileContent: string;
 

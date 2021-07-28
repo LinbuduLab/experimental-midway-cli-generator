@@ -2,9 +2,9 @@ import { EntityModel } from '@midwayjs/orm';
 import {
   PrimaryGeneratedColumn,
   Column,
-<% if (activeRecord) { -%>
-BaseEntity,
-<% } -%>
+  <% if (activeRecord) { -%>
+  BaseEntity,
+  <% } -%>
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
