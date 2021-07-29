@@ -7,40 +7,38 @@ Experimental works for Midway-CLI generator (fragments / components)
 ## Fragments
 
 - Controller
-  - Light / Full template
-  - Spec
+  - [x] Light / Full template
+  - [ ] Spec
 - Service
-  - Spec
+  - [ ] Spec
 - Middleware
-  - Framework
-  - Third lib / internal implementation
+  - [x] Framework
+  - [x] Third lib / internal implementation
 - Test
   - Application
 
 ## Components
 
-- TypeORM
-  - Setup
-  - Entity
-    - Relation
-  - Configuration
-  - Service
-  - Query Builder
-- TypeGraphQL
-  - Setup
-  - ObjectType / InputType / InterfaceType
-  - Resolver / FieldResolver
-  - Scalar / Enum / Union / Directives / Extensions
-  - Middleware
-  - TSConfig modification
-  - Comments
-- Prisma
-  - Setup
-  - Commands scripts
-  - GitIgnore modification
-  - Comments
-- Cache
-- Swagger
+- [ ] TypeORM
+  - [ ] Setup
+  - [x] Entity
+    - [x] Relation
+  - [ ] Configuration
+  - [x] Subscriber
+- [ ] TypeGraphQL
+  - [ ] Setup
+  - [x] ObjectType / InputType / InterfaceType
+  - [x] Resolver / FieldResolver
+  - [ ] Scalar / Enum / Union / Directives / Extensions
+  - [x] Middleware
+  - [ ] TSConfig modification
+- [ ] Prisma
+  - [ ] Setup
+  - [ ] Commands scripts
+  - [ ] GitIgnore modification
+  - [ ] Comments
+- [ ] Cache
+- [ ] Swagger
 
 ## Future
 

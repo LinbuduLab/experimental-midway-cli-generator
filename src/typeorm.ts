@@ -5,7 +5,7 @@ import { compile as EJSCompile } from 'ejs';
 
 import * as prettier from 'prettier';
 import { ensureBooleanType, inputPromptStringValue } from './lib/helper';
-import { names } from './lib/helper';
+import { names, updateGitIgnore } from './lib/helper';
 
 // mw g component orm setup/entity
 // mw g component tgql --interactive

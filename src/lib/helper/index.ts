@@ -3,6 +3,10 @@ import { capitalCase } from '../case/capital-case';
 import { dotCase } from '../case/dot-case';
 import { lowerCase } from '../case/lower-case';
 import { constantCase } from '../case/constant-case';
+import * as findUp from 'find-up';
+import * as path from 'path';
+import * as fs from 'fs-extra';
+import * as minIndent from 'min-indent';
 
 // true -> true
 // "true" -> true
@@ -11,6 +15,18 @@ import { constantCase } from '../case/constant-case';
 export const ensureBooleanType = (value: boolean | string) => {
   return value === true || value === 'true';
 };
+
+export function stripIndent(string: string) {
+  const indent = minIndent(string);
+
+  if (indent === 0) {
+    return string;
+  }
+
+  const regex = new RegExp(`^[ \\t]{${indent}}`, 'gm');
+
+  return string.replace(regex, '');
+}
 
 export const inputPromptStringValue = async (
   identifier: string,
@@ -42,3 +58,28 @@ export const names = (origin: string): Names => ({
   fileName: lowerCase(origin),
   constantName: constantCase(origin),
 });
+
+export const updateGitIgnore = (patterns: string[]) => {
+  const pathUnderGitControl = findUp.sync(['.git'], {
+    type: 'directory',
+  });
+
+  const ignoreFilePath = path.resolve(
+    path.dirname(pathUnderGitControl),
+    '.gitignore'
+  );
+  console.log('ignoreFilePath: ', ignoreFilePath);
+
+  let originContent = fs.readFileSync(ignoreFilePath, 'utf8');
+
+  patterns.forEach(pattern => {
+    if (!originContent.includes(pattern)) {
+      originContent = `${originContent}\n
+${pattern}`;
+    }
+  });
+
+  const content = stripIndent(originContent);
+
+  fs.writeFileSync(ignoreFilePath, content);
+};
