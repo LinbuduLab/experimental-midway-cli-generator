@@ -26,13 +26,16 @@ export function tmp(source: SourceFile) {
   // const tmp3 = tmp2.addArgument(writer => writer.write('{}'));
 
   const tmp3 = tmp2
+
     .getArguments()[0]
     .asKind(SyntaxKind.ObjectLiteralExpression);
 
-  const tmp4 = tmp3.getChildren().map(x => x.getKindName());
-  console.log('tmp4: ', tmp4);
+  console.log('tmp3: ', tmp3.getText());
 
-  const tmp5 = tmp3.getChildAtIndexIfKind(1, SyntaxKind.SyntaxList);
+  // const tmp4 = tmp3.getChildren().map(x => x.getKindName());
+  // console.log('tmp4: ', tmp4);
+
+  // const tmp5 = tmp3.getChildAtIndexIfKind(1, SyntaxKind.SyntaxList);
 }
 
 export function updateDecoratorArgs() {}

@@ -1,0 +1,12 @@
+service:
+  name: NAME_PLACEHOLDER
+
+provider:
+  name: aliyun
+
+aggregation:
+  all:
+    functionsPattern: '*'
+custom:
+  customDomain:
+    domainName: auto

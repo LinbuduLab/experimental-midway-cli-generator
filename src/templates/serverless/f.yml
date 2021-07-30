@@ -1,0 +1,9 @@
+service:
+  name: NAME_PLACEHOLDER
+
+provider:
+  name: aliyun
+
+custom:
+  customDomain:
+    domainName: auto
