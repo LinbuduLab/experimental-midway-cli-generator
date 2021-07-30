@@ -4,6 +4,7 @@ import { injectControllerGenerator } from './controller';
 import { injectServiceGenerator } from './service';
 import { injectMiddlewareGenerator } from './middleware';
 import { injectDebuggerGenerator } from './debug';
+import { injectServerlessGenerator } from './serverless';
 
 import { injectTypeORMGenerator } from './typeorm';
 import { injectTypeGraphQLGenerator } from './type-graphql';
@@ -14,6 +15,7 @@ injectControllerGenerator(cli);
 injectServiceGenerator(cli);
 injectMiddlewareGenerator(cli);
 injectDebuggerGenerator(cli);
+injectServerlessGenerator(cli);
 
 injectTypeORMGenerator(cli);
 injectTypeGraphQLGenerator(cli);

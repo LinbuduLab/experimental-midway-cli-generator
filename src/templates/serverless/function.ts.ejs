@@ -6,14 +6,18 @@ import {
   <% if (gateway) { -%>
   Body,
   <% } -%>
-  <% if (gateway) { -%>
+  <% if (http) { -%>
   Query,
   <% } -%>
 } from '@midwayjs/decorator';
-import { Context, FC } from '@midwayjs/faas';
+import { Context,
+  <% if (timer || oss) { -%>
+  FC,
+  <% } -%>
+} from '@midwayjs/faas';
 
 @Provide()
-export class <%=__FunctionName__\%> {
+export class <%= __Function_Name__ %> {
   @Inject()
   ctx: Context;
 
