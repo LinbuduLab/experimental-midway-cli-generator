@@ -1,7 +1,6 @@
 import { CAC } from 'cac';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import * as findUp from 'find-up';
 import * as prettier from 'prettier';
 import { compile as EJSCompile } from 'ejs';
 
@@ -9,6 +8,24 @@ import * as yaml from 'js-yaml';
 import { ensureBooleanType, inputPromptStringValue, names } from './lib/helper';
 
 type SLSGeneratorType = 'faas' | 'aggr';
+
+function yamlRelated(
+  serviceName: string,
+  originPath: string,
+  outputPath: string,
+  useAggr = false
+) {
+  const origin = fs.readFileSync(originPath, 'utf-8');
+  const doc = yaml.load(origin) as any;
+
+  doc.service.name = serviceName;
+
+  if (useAggr) {
+    doc.aggregation.all.functionsPattern = '*';
+  }
+
+  fs.writeFileSync(yaml.dump(doc), outputPath);
+}
 
 export const injectServerlessGenerator = (cli: CAC) => {
   cli
