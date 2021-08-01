@@ -116,6 +116,7 @@ export const useControllerGenerator = (cli: CAC) => {
         fs.writeFileSync(generatedPath, outputContent);
       } else {
         consola.success('Controller generator invoked with:');
+        consola.info(`name: ${chalk.cyan(name)}`);
         consola.info(`light: ${chalk.cyan(options.light)}`);
         consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
         consola.info(`override: ${chalk.cyan(options.override)}`);
