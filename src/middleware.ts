@@ -1,11 +1,16 @@
 import { CAC } from 'cac';
-import * as path from 'path';
-import * as fs from 'fs-extra';
+import path from 'path';
+import fs from 'fs-extra';
 import { compile as EJSCompile } from 'ejs';
 
-import * as prettier from 'prettier';
-import { ensureBooleanType, inputPromptStringValue } from './lib/helper';
+import prettier from 'prettier';
+import { inputPromptStringValue } from './lib/helper';
 import { names } from './lib/helper';
+import findUp from 'find-up';
+import consola from 'consola';
+import chalk from 'chalk';
+
+const DEFAULT_MIDDLEWARE_DIR_PATH = 'middleware';
 
 type Framework = 'koa' | 'express' | 'egg';
 
@@ -30,19 +35,40 @@ const frameworkSpecificInfo = (framework: Framework): FrameworkSpecificInfo => {
   }
 };
 
+const getMiddlewarerGenPath = (userDir?: string) => {
+  const nearestProjectDir = path.dirname(
+    findUp.sync(['package.json'], {
+      type: 'file',
+    })
+  );
+
+  const middlewareDirPath = process.env.MW_GEN_LOCAL
+    ? path.resolve(__dirname, '../project/src/middleware')
+    : path.resolve(
+        nearestProjectDir,
+        'src',
+        userDir ? userDir : DEFAULT_MIDDLEWARE_DIR_PATH
+      );
+
+  fs.ensureDirSync(middlewareDirPath);
+
+  if (process.env.MW_GEN_LOCAL) {
+    consola.info('Using local project:');
+    consola.info(middlewareDirPath);
+  }
+
+  return middlewareDirPath;
+};
+
 export const useMiddlewareGenerator = (cli: CAC) => {
   cli
     .command('middleware [name]', 'Generate middleware', {
       allowUnknownOptions: true,
     })
     .alias('m')
-    .option(
-      '--useExternaLib [useExternaLib]',
-      'Use external lib as middleware',
-      {
-        default: false,
-      }
-    )
+    .option('--external [external]', 'Use external lib as middleware', {
+      default: false,
+    })
     .option('--framework [framework]', 'Target framework', {
       default: 'egg',
     })
@@ -54,34 +80,28 @@ export const useMiddlewareGenerator = (cli: CAC) => {
       }
     )
     .option(
-      '--format [format]',
-      'Format generated content before write into disk',
-      {
-        default: true,
-      }
-    )
-    .option(
       '--override [override]',
-      'Override on file with same target name existing',
-      {
-        default: true,
-      }
+      'Override on file with same target name existing'
     )
+    .option('--no-override', 'Opposite of --override')
     .option('--file-name [fileName]', 'File name for generated')
-    .option('--dry-run [dryRun]', 'Dry run to see what is happening')
+    .option('--dir [dir]', 'Dir name for generated')
+    .option('--dry-run [dryRun]', 'Dry run to see what is happening', {
+      default: false,
+    })
     // TODO: interactive mode:  ignore all previous options
     .action(async (name, options) => {
-      options.useExternaLib = ensureBooleanType(options.useExternaLib);
-      options.format = ensureBooleanType(options.format);
-      options.override = ensureBooleanType(options.override);
-      options.functional = ensureBooleanType(options.functional);
+      if (options.dryRun) {
+        consola.success('Executing in `dry run` mode, nothing will happen.');
+      }
 
       if (!name) {
+        consola.warn('Middleware name cannot be empty!');
         name = await inputPromptStringValue('middleware name');
       }
 
       if (!['egg', 'koa', 'express'].includes(options.framework)) {
-        console.log('invalid framework');
+        consola.error('Invalid framework, use one of `egg`/`koa`/`express`');
         process.exit(0);
       }
 
@@ -90,15 +110,24 @@ export const useMiddlewareGenerator = (cli: CAC) => {
       const middlewareNames = names(name);
       const fileNameNames = names(options.fileName ?? name);
 
-      const exist = fs.existsSync(
-        path.resolve(__dirname, `${fileNameNames.fileName}.ts`)
+      const generatedFilePath = path.resolve(
+        getMiddlewarerGenPath(options.dir),
+        `${fileNameNames.fileName}.ts`
       );
 
+      consola.info(
+        `Middleware will be created in ${chalk.green(generatedFilePath)}`
+      );
+
+      const exist = fs.existsSync(generatedFilePath);
+
       if (exist && !options.override) {
-        console.log('exist');
+        consola.error(
+          'File exist, enable `--override` to override existing file.'
+        );
         process.exit(0);
       } else if (exist) {
-        console.log('overriding exist file');
+        consola.warn('overriding exist file');
       }
 
       const tmp = fs.readFileSync(path.join(__dirname, info.templatePath), {
@@ -110,17 +139,12 @@ export const useMiddlewareGenerator = (cli: CAC) => {
         {}
       )({
         name: middlewareNames.className,
-        useExternalLib: options.useExternalLib,
+        useExternalLib: options.external,
         functional: options.functional,
       });
 
-      const outputContent = options.format
-        ? prettier.format(template, { parser: 'typescript' })
-        : template;
+      const outputContent = prettier.format(template, { parser: 'typescript' });
 
-      fs.writeFileSync(
-        path.resolve(__dirname, `${fileNameNames.fileName}.ts`),
-        outputContent
-      );
+      fs.writeFileSync(generatedFilePath, outputContent);
     });
 };
