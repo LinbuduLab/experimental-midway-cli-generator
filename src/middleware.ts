@@ -30,7 +30,7 @@ const frameworkSpecificInfo = (framework: Framework): FrameworkSpecificInfo => {
   }
 };
 
-export const injectMiddlewareGenerator = (cli: CAC) => {
+export const useMiddlewareGenerator = (cli: CAC) => {
   cli
     .command('middleware [name]', 'Generate middleware', {
       allowUnknownOptions: true,

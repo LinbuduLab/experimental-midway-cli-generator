@@ -7,7 +7,7 @@ import * as prettier from 'prettier';
 import { ensureBooleanType, inputPromptStringValue } from './lib/helper';
 import { names } from './lib/helper';
 
-export const injectServiceGenerator = (cli: CAC) => {
+export const useServiceGenerator = (cli: CAC) => {
   cli
     .command('service [name]', 'Generate service', {
       allowUnknownOptions: true,

@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 import cac from 'cac';
-import { injectControllerGenerator } from './controller';
-import { injectServiceGenerator } from './service';
-import { injectMiddlewareGenerator } from './middleware';
-import { injectDebuggerGenerator } from './debug';
-import { injectServerlessGenerator } from './serverless';
+import { useControllerGenerator } from './controller';
+import { useServiceGenerator } from './service';
+import { useMiddlewareGenerator } from './middleware';
+import { useDebuggerGenerator } from './debug';
+import { useServerlessGenerator } from './serverless';
 
-import { injectTypeORMGenerator } from './typeorm';
-import { injectTypeGraphQLGenerator } from './type-graphql';
+import { useTypeORMGenerator } from './typeorm';
+import { useTypeGraphQLGenerator } from './type-graphql';
 
 const cli = cac();
 
-injectControllerGenerator(cli);
-injectServiceGenerator(cli);
-injectMiddlewareGenerator(cli);
-injectDebuggerGenerator(cli);
-injectServerlessGenerator(cli);
+useControllerGenerator(cli);
+useServiceGenerator(cli);
+useMiddlewareGenerator(cli);
+useDebuggerGenerator(cli);
+useServerlessGenerator(cli);
 
-injectTypeORMGenerator(cli);
-injectTypeGraphQLGenerator(cli);
+useTypeORMGenerator(cli);
+useTypeGraphQLGenerator(cli);
 
 const parsed = cli.parse();
 

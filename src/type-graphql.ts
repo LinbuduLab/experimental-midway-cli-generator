@@ -42,7 +42,7 @@ const componentTypes = ['Scalar', 'Enum', 'Directive', 'Union'];
 // ObjectType、Resolver、Middleware
 // Setup
 
-export const injectTypeGraphQLGenerator = (cli: CAC) => {
+export const useTypeGraphQLGenerator = (cli: CAC) => {
   cli
     .command('tgql <type> [name]', 'TypeORM related', {
       allowUnknownOptions: true,

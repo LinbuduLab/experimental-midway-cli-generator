@@ -7,7 +7,7 @@ import * as prettier from 'prettier';
 import { ensureBooleanType, inputPromptStringValue } from './lib/helper';
 import { names } from './lib/helper';
 
-export const injectControllerGenerator = (cli: CAC) => {
+export const useControllerGenerator = (cli: CAC) => {
   cli
     .command('controller [name]', 'Generate controller', {
       allowUnknownOptions: true,

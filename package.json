@@ -10,7 +10,9 @@
   },
   "scripts": {
     "dev": "tsnd --respawn --transpile-only  ./src/index.ts",
-    "ast": "tsnd --respawn --transpile-only ./src/lib/ast/core.ts"
+    "ast": "tsnd --respawn --transpile-only ./src/lib/ast/core.ts",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "cac": "^6.7.3",
@@ -38,12 +40,17 @@
     "@types/ejs": "^3.0.7",
     "@types/fs-extra": "^9.0.12",
     "@types/inquirer": "^7.3.3",
+    "@types/jest": "^26.0.24",
     "@types/js-yaml": "^4.0.2",
     "@types/jsonfile": "^6.0.1",
     "@types/minimatch": "^3.0.5",
     "@types/node": "^16.4.2",
     "@types/prettier": "^2.3.2",
     "@types/strip-comments": "^2.0.1",
-    "@types/yargs": "^17.0.2"
+    "@types/yargs": "^17.0.2",
+    "clet": "^0.5.0",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.4",
+    "ts-node": "^10.1.0"
   }
 }

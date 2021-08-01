@@ -26,7 +26,7 @@ export enum TypeORMGenerator {
   SUBSCRIBER = 'SUBSCRIBER',
 }
 
-export const injectTypeORMGenerator = (cli: CAC) => {
+export const useTypeORMGenerator = (cli: CAC) => {
   cli
     .command('orm <type> [name]', 'TypeORM related', {
       allowUnknownOptions: true,

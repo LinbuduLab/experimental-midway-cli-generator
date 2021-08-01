@@ -27,7 +27,7 @@ function yamlRelated(
   fs.writeFileSync(yaml.dump(doc), outputPath);
 }
 
-export const injectServerlessGenerator = (cli: CAC) => {
+export const useServerlessGenerator = (cli: CAC) => {
   cli
     .command(
       'sls [type] [name]',

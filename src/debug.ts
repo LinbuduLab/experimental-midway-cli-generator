@@ -6,7 +6,7 @@ import * as prettier from 'prettier';
 import { ensureBooleanType, inputPromptStringValue } from './lib/helper';
 import * as jsonfile from 'jsonfile';
 
-export const injectDebuggerGenerator = (cli: CAC) => {
+export const useDebuggerGenerator = (cli: CAC) => {
   cli
     .command('debug [name]', 'Generate launch.json for VS Code debug', {
       allowUnknownOptions: true,
