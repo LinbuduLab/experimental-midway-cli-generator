@@ -112,6 +112,8 @@ export const useServiceGenerator = (cli: CAC) => {
         consola.info(`override: ${chalk.cyan(options.override)}`);
         consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
         consola.info(`dir: ${chalk.cyan(options.dir)}`);
+
+        consola.info(`File will be created: ${chalk.green(generatedPath)}`);
       }
     });
 };

@@ -171,6 +171,8 @@ export const useServerlessGenerator = (cli: CAC) => {
 
         consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
         consola.info(`dir: ${chalk.cyan(options.dir)}`);
+
+        consola.info(`File will be created: ${chalk.green(finalFilePath)}`);
       }
     });
 };

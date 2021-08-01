@@ -117,6 +117,9 @@ export const useDebuggerGenerator = (cli: CAC) => {
           generatedPath,
           prettier.format(JSON.stringify(writeContent), { parser: 'json' })
         );
+      } else {
+        consola.success('Debug generator invoked with:');
+        consola.info(`File will be created: ${chalk.green(generatedPath)}`);
       }
     });
 };
