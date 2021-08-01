@@ -121,6 +121,7 @@ export const useControllerGenerator = (cli: CAC) => {
         consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
         consola.info(`override: ${chalk.cyan(options.override)}`);
         consola.info(`file name: ${chalk.cyan(options.fileName ?? name)}`);
+        consola.info(`dir: ${chalk.cyan(options.dir)}`);
       }
     });
 };

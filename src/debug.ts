@@ -112,9 +112,11 @@ export const useDebuggerGenerator = (cli: CAC) => {
         writeContent.configuration.push(createDebuggerConfiguration(name));
       }
 
-      fs.writeFileSync(
-        generatedPath,
-        prettier.format(JSON.stringify(writeContent), { parser: 'json' })
-      );
+      if (!options.dryRun) {
+        fs.writeFileSync(
+          generatedPath,
+          prettier.format(JSON.stringify(writeContent), { parser: 'json' })
+        );
+      }
     });
 };

@@ -148,13 +148,14 @@ export const useMiddlewareGenerator = (cli: CAC) => {
       if (!options.dryRun) {
         fs.writeFileSync(generatedFilePath, outputContent);
       } else {
-        consola.success('Controller generator invoked with:');
+        consola.success('Middleware generator invoked with:');
         consola.info(`name: ${chalk.cyan(name)}`);
         consola.info(`external: ${chalk.cyan(options.external)}`);
         consola.info(`framework: ${chalk.cyan(options.framework)}`);
         consola.info(`functional: ${chalk.cyan(options.functional)}`);
         consola.info(`override: ${chalk.cyan(options.override)}`);
         consola.info(`file name: ${chalk.cyan(options.fileName ?? name)}`);
+        consola.info(`dir: ${chalk.cyan(options.dir)}`);
       }
     });
 };
