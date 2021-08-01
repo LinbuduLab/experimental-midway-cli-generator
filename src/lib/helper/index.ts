@@ -8,6 +8,23 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as minIndent from 'min-indent';
 
+import parseJson from 'parse-json';
+import normalizePackageData from 'normalize-package-data';
+
+export function readPackageSync({
+  cwd = process.cwd(),
+  normalize = true,
+} = {}) {
+  const filePath = path.resolve(cwd, 'package.json');
+  const json = parseJson(fs.readFileSync(filePath, 'utf8'));
+
+  if (normalize) {
+    normalizePackageData(json);
+  }
+
+  return json;
+}
+
 // true -> true
 // "true" -> true
 // "false" -> false

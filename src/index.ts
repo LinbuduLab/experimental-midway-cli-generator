@@ -8,18 +8,20 @@ import { useServerlessGenerator } from './serverless';
 
 import { useTypeORMGenerator } from './typeorm';
 import { useTypeGraphQLGenerator } from './type-graphql';
+import { usePrismaGenerator } from './prisma';
 
 const cli = cac();
 
+// Internal Fragment
 useControllerGenerator(cli);
 useServiceGenerator(cli);
 useMiddlewareGenerator(cli);
 useDebuggerGenerator(cli);
 useServerlessGenerator(cli);
 
+// External Component / Integration
 useTypeORMGenerator(cli);
 useTypeGraphQLGenerator(cli);
+usePrismaGenerator(cli);
 
-const parsed = cli.parse();
-
-// console.log(JSON.stringify(parsed, null, 2));
+cli.parse();

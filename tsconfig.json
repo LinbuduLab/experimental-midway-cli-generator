@@ -1,10 +1,11 @@
 {
-  "extends": "./node_modules/mwts/tsconfig-midway.json",
+  // "extends": "./node_modules/mwts/tsconfig-midway.json",
   "compileOnSave": true,
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es2018",
+    "target": "ES6",
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "noImplicitThis": true,
