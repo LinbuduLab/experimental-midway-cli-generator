@@ -97,7 +97,7 @@ export const useMiddlewareGenerator = (cli: CAC) => {
 
       if (!name) {
         consola.warn('Middleware name cannot be empty!');
-        name = await inputPromptStringValue('middleware name');
+        name = await inputPromptStringValue('middleware name', 'tmp');
       }
 
       if (!['egg', 'koa', 'express'].includes(options.framework)) {

@@ -7,12 +7,17 @@ import * as prettier from 'prettier';
 import { ensureBooleanType, inputPromptStringValue } from './lib/helper';
 import { names } from './lib/helper';
 import { constantCase } from './lib/case/constant-case';
+import consola from 'consola';
+import chalk from 'chalk';
+import findUp from 'find-up';
+import { capitalCase } from './lib/case/capital-case';
+import { TypeReferenceNode } from 'ts-morph';
 
 export enum TypeGraphQLGenerator {
   SETUP = 'SETUP',
-  OBJECT_TYPE = 'OBJECT_TYPE',
-  INPUT_TYPE = 'INPUT_TYPE',
-  INTERFACE_TYPE = 'INTERFACE_TYPE',
+  OBJECT_TYPE = 'OBJECT',
+  INPUT_TYPE = 'INPUT',
+  INTERFACE_TYPE = 'INTERFACE',
   SCALAR = 'SCALAR',
   ENUM = 'ENUM',
   DIRECTIVE = 'DIRECTIVE',
@@ -28,25 +33,70 @@ export enum MiddlewareType {
   GUARD = 'GUARD',
 }
 
-const baseTypes = [
-  'ObjectType',
-  'InputType',
-  'InterfaceType',
-  'Resolver',
-  'Middleware',
-];
+const baseTypes = ['object', 'input', 'interface', 'resolver', 'middleware'];
 
-const componentTypes = ['Scalar', 'Enum', 'Directive', 'Union'];
+const componentTypes = ['scalar', 'eunm', 'directive', 'union'];
+
+const DEFAULT_GRAPHQL_DIR_PATH = 'graphql';
+const DEFAULT_OBJECT_TYPE_DIR_PATH = 'graphql/type';
+const DEFAULT_MIDDLEWARE_DIR_PATH = 'graphql/middleware';
+const DEFAULT_RESOLVER_DIR_PATH = 'graphql/resolver';
 
 // 一期：
 // ObjectType、Resolver、Middleware
 // Setup
 
+const getTypeGraphQLGenPath = (userDir?: string) => {
+  const nearestProjectDir = path.dirname(
+    findUp.sync(['package.json'], {
+      type: 'file',
+    })
+  );
+
+  const typePath = process.env.MW_GEN_LOCAL
+    ? path.resolve(__dirname, '../project/src/graphql/type')
+    : path.resolve(
+        nearestProjectDir,
+        'src',
+        userDir ? userDir : DEFAULT_OBJECT_TYPE_DIR_PATH
+      );
+
+  const middlewarePath = process.env.MW_GEN_LOCAL
+    ? path.resolve(__dirname, '../project/src/graphql/middleware')
+    : path.resolve(
+        nearestProjectDir,
+        'src',
+        userDir ? userDir : DEFAULT_MIDDLEWARE_DIR_PATH
+      );
+
+  const resolverPath = process.env.MW_GEN_LOCAL
+    ? path.resolve(__dirname, '../project/src/graphql/resolver')
+    : path.resolve(
+        nearestProjectDir,
+        'src',
+        userDir ? userDir : DEFAULT_RESOLVER_DIR_PATH
+      );
+
+  if (process.env.MW_GEN_LOCAL) {
+    consola.info('Using local project:');
+    consola.info(`typePath: ${typePath}`);
+    consola.info(`middlewarePath: ${middlewarePath}`);
+    consola.info(`resolverPath: ${resolverPath}`);
+  }
+
+  return {
+    typePath,
+    middlewarePath,
+    resolverPath,
+  };
+};
+
 export const useTypeGraphQLGenerator = (cli: CAC) => {
   cli
-    .command('tgql <type> [name]', 'TypeORM related', {
+    .command('graphql <type> [name]', 'TypeGraphQL generatore', {
       allowUnknownOptions: true,
     })
+    .alias('gql')
     // ObjectType specified option
     .option('--orm [orm]', 'Add TypeORM decorator to ObjectType', {
       default: false,
@@ -56,36 +106,50 @@ export const useTypeGraphQLGenerator = (cli: CAC) => {
       default: true,
     })
     // Middleware specified option
-    .option('--type [type]', 'Choose middleware type', {
+    .option('--mw-type [mwType]', 'Choose middleware type', {
       default: 'functional',
     })
     .option('--file-name [fileName]', 'File name for Mw/subscriber')
     .option('--dot-name [dotName]', 'Use dot name like user.Mw.ts', {
       default: true,
     })
+    .option('--dir [dir]', 'Dir name for generated')
     .option('--dry-run [dryRun]', 'Dry run to see what is happening')
     .action(async (type: TypeGraphQLGenerator, name, options) => {
+      if (options.dryRun) {
+        consola.success('Executing in `dry run` mode, nothing will happen.');
+      }
+
       if (![...baseTypes, ...componentTypes, 'setup'].includes(type)) {
-        console.log('invalid sub-command ');
+        consola.error(`Invalid generator type: ${type}`);
         process.exit(0);
       }
 
       options.orm = ensureBooleanType(options.orm);
       options.field = ensureBooleanType(options.field);
+      options.dotName = ensureBooleanType(options.dotName);
 
       if (
-        !['functional', 'class', 'guard', 'factory', ''].includes(options.type)
+        type.toLocaleUpperCase() === TypeGraphQLGenerator.MIDDLEWARE &&
+        !['functional', 'class', 'guard', 'factory'].includes(options.mwType)
       ) {
+        consola.error(`Invalid middleware type: ${type}`);
         options.type = 'functional';
       }
 
-      let finalFileName: string;
+      if (type.toLocaleUpperCase() !== TypeGraphQLGenerator.SETUP && !name) {
+        const capitalCaseRequireName = capitalCase(type);
+        consola.warn(`${capitalCaseRequireName} name cannot be empty!`);
+        name = await inputPromptStringValue(`${type} name`, 'tmp');
+      }
+
+      let finalFilePath: string;
       let finalFileContent: string;
 
       const nameNames = names(name);
       const fileNameNames = names(options.fileName ?? name);
 
-      switch (constantCase(type)) {
+      switch (type.toLocaleUpperCase()) {
         case TypeGraphQLGenerator.SETUP:
           if (name) {
             console.log('ignored extra args in setup generator');
@@ -111,11 +175,18 @@ export const useTypeGraphQLGenerator = (cli: CAC) => {
             orm: options.orm,
           });
 
+          const { typePath } = getTypeGraphQLGenPath(options.dir);
+
           const outputContentObjType = prettier.format(templateObjType, {
             parser: 'typescript',
           });
 
-          finalFileName = `${writeFileNameObjType}.ts`;
+          finalFilePath = path.resolve(typePath, `${writeFileNameObjType}.ts`);
+
+          consola.info(
+            `ObjectType will be created in ${chalk.green(finalFilePath)}`
+          );
+
           finalFileContent = outputContentObjType;
           break;
 
@@ -141,7 +212,14 @@ export const useTypeGraphQLGenerator = (cli: CAC) => {
             parser: 'typescript',
           });
 
-          finalFileName = `${writeFileNameMw}.ts`;
+          const { middlewarePath } = getTypeGraphQLGenPath(options.dir);
+
+          finalFilePath = path.resolve(middlewarePath, `${writeFileNameMw}.ts`);
+
+          consola.info(
+            `Middleware will be created in ${chalk.green(finalFilePath)}`
+          );
+
           finalFileContent = outputContentMw;
           break;
 
@@ -167,14 +245,44 @@ export const useTypeGraphQLGenerator = (cli: CAC) => {
             parser: 'typescript',
           });
 
-          finalFileName = `${writeFileNameResolver}.ts`;
+          const { resolverPath } = getTypeGraphQLGenPath(options.dir);
+
+          finalFilePath = path.resolve(
+            resolverPath,
+            `${writeFileNameResolver}.ts`
+          );
+
+          consola.info(
+            `Resolver will be created in ${chalk.green(finalFilePath)}`
+          );
+
           finalFileContent = outputContentResolver;
           break;
       }
 
-      fs.writeFileSync(
-        path.resolve(__dirname, finalFileName),
-        finalFileContent
-      );
+      if (!options.dryRun) {
+        fs.writeFileSync(finalFilePath, finalFileContent);
+      } else {
+        consola.success('TypeGraphQL generator invoked with:');
+        consola.info(`type: ${chalk.cyan(type)}`);
+        type.toLocaleUpperCase() !== TypeGraphQLGenerator.SETUP &&
+          consola.info(`name: ${chalk.cyan(name)}`);
+
+        if (type.toLocaleUpperCase() === TypeGraphQLGenerator.OBJECT_TYPE) {
+          consola.info(`orm: ${chalk.cyan(options.orm)}`);
+        }
+
+        if (type.toLocaleUpperCase() === TypeGraphQLGenerator.MIDDLEWARE) {
+          consola.info(`mw-type: ${chalk.cyan(options.mwType)}`);
+        }
+
+        if (type.toLocaleUpperCase() === TypeGraphQLGenerator.RESOLVER) {
+          consola.info(`field: ${chalk.cyan(options.field)}`);
+        }
+
+        consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
+        consola.info(`file name: ${chalk.cyan(options.fileName ?? name)}`);
+        consola.info(`dir: ${chalk.cyan(options.dir)}`);
+      }
     });
 };

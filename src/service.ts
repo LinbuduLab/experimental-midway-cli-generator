@@ -63,7 +63,7 @@ export const useServiceGenerator = (cli: CAC) => {
 
       if (!name) {
         consola.warn('Service name cannot be empty!');
-        name = await inputPromptStringValue('service name');
+        name = await inputPromptStringValue('service name', 'tmp');
       }
 
       const serviceNames = names(name);

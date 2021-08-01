@@ -124,7 +124,7 @@ export const useTypeORMGenerator = (cli: CAC) => {
       if (['entity', 'subscriber'].includes(type) && !name) {
         const capitalCaseRequireName = capitalCase(type);
         consola.warn(`${capitalCaseRequireName} name cannot be empty!`);
-        name = await inputPromptStringValue(`${type} name`);
+        name = await inputPromptStringValue(`${type} name`, 'tmp');
       }
 
       options.activeRecord = ensureBooleanType(options.activeRecord);
