@@ -33,7 +33,7 @@ export enum TypeORMGenerator {
 const DEFAULT_ENTITY_DIR_PATH = 'entity';
 const DEFAULT_SUBSCRIBER_DIR_PATH = 'entity/subscriber';
 
-const getTypeORMEntityGenPath = (userDir?: string) => {
+const getTypeORMGenPath = (userDir?: string) => {
   const nearestProjectDir = path.dirname(
     findUp.sync(['package.json'], {
       type: 'file',
@@ -48,21 +48,6 @@ const getTypeORMEntityGenPath = (userDir?: string) => {
         userDir ? userDir : DEFAULT_ENTITY_DIR_PATH
       );
 
-  if (process.env.MW_GEN_LOCAL) {
-    consola.info('Using local project:');
-    consola.info(entityPath);
-  }
-
-  return entityPath;
-};
-
-const getTypeORMSubscriberGenPath = (userDir?: string) => {
-  const nearestProjectDir = path.dirname(
-    findUp.sync(['package.json'], {
-      type: 'file',
-    })
-  );
-
   const subscriberPath = process.env.MW_GEN_LOCAL
     ? path.resolve(__dirname, '../project/src/entity/subscriber')
     : path.resolve(
@@ -73,10 +58,11 @@ const getTypeORMSubscriberGenPath = (userDir?: string) => {
 
   if (process.env.MW_GEN_LOCAL) {
     consola.info('Using local project:');
-    consola.info(subscriberPath);
+    consola.info(`entityPath: ${entityPath}`);
+    consola.info(`subscriberPath: ${subscriberPath}`);
   }
 
-  return subscriberPath;
+  return { entityPath, subscriberPath };
 };
 
 export const useTypeORMGenerator = (cli: CAC) => {
@@ -175,7 +161,7 @@ export const useTypeORMGenerator = (cli: CAC) => {
             parser: 'typescript',
           });
 
-          const entityDirPath = getTypeORMEntityGenPath(options.dir);
+          const { entityPath: entityDirPath } = getTypeORMGenPath(options.dir);
 
           finalFilePath = path.resolve(
             entityDirPath,
@@ -212,7 +198,9 @@ export const useTypeORMGenerator = (cli: CAC) => {
             parser: 'typescript',
           });
 
-          const subscriberDirPath = getTypeORMSubscriberGenPath(options.dir);
+          const { subscriberPath: subscriberDirPath } = getTypeORMGenPath(
+            options.dir
+          );
 
           finalFilePath = path.resolve(
             subscriberDirPath,
@@ -247,7 +235,7 @@ export const useTypeORMGenerator = (cli: CAC) => {
         }
 
         consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
-        consola.info(`file name: ${chalk.cyan(options.fileName ?? name)}`);
+        consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
         consola.info(`dir: ${chalk.cyan(options.dir)}`);
       }
     });

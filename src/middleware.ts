@@ -155,7 +155,7 @@ export const useMiddlewareGenerator = (cli: CAC) => {
         consola.info(`framework: ${chalk.cyan(options.framework)}`);
         consola.info(`functional: ${chalk.cyan(options.functional)}`);
         consola.info(`override: ${chalk.cyan(options.override)}`);
-        consola.info(`file name: ${chalk.cyan(options.fileName ?? name)}`);
+        consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
         consola.info(`dir: ${chalk.cyan(options.dir)}`);
       }
     });

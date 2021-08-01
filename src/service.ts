@@ -110,7 +110,7 @@ export const useServiceGenerator = (cli: CAC) => {
         consola.info(`name: ${chalk.cyan(name)}`);
         consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
         consola.info(`override: ${chalk.cyan(options.override)}`);
-        consola.info(`file name: ${chalk.cyan(options.fileName ?? name)}`);
+        consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
         consola.info(`dir: ${chalk.cyan(options.dir)}`);
       }
     });
