@@ -1,11 +1,41 @@
 import { CAC } from 'cac';
-import * as path from 'path';
-import * as fs from 'fs-extra';
+import path from 'path';
+import fs from 'fs-extra';
 import { compile as EJSCompile } from 'ejs';
 
-import * as prettier from 'prettier';
-import { ensureBooleanType, inputPromptStringValue } from './lib/helper';
+import prettier from 'prettier';
+import { inputPromptStringValue } from './lib/helper';
 import { names } from './lib/helper';
+import consola from 'consola';
+import chalk from 'chalk';
+import findUp from 'find-up';
+
+const DEFAULT_CONTROLLER_PATH = 'controller';
+
+const getControllerGenPath = (userDir?: string) => {
+  const nearestProjectDir = path.dirname(
+    findUp.sync(['package.json'], {
+      type: 'file',
+    })
+  );
+
+  const controllerPath = process.env.MW_GEN_LOCAL
+    ? path.resolve(__dirname, '../project/src/controller')
+    : path.resolve(
+        nearestProjectDir,
+        'src',
+        userDir ? userDir : DEFAULT_CONTROLLER_PATH
+      );
+
+  fs.ensureDirSync(controllerPath);
+
+  if (process.env.MW_GEN_LOCAL) {
+    consola.info('Using local project:');
+    consola.info(controllerPath);
+  }
+
+  return controllerPath;
+};
 
 export const useControllerGenerator = (cli: CAC) => {
   cli
@@ -14,56 +44,65 @@ export const useControllerGenerator = (cli: CAC) => {
     })
     .alias('c')
     // generate minimal template file
-    .option('--light [light]', 'Generate light template', {
-      default: true,
-    })
+    .option('--light [light]', 'Generate light template')
+    .option('--no-light', 'Opposite of --light')
     // use dot name like app.controller.ts
-    .option('--dot-name [dotName]', 'Use dot file name', {
-      default: true,
-    })
-    .option(
-      '--format [format]',
-      'Format generated content before write into disk',
-      {
-        default: true,
-      }
-    )
+    .option('--dot-name [dotName]', 'Use dot file name')
+    .option('--no-dot-name', 'Opposite of --dot-name')
     .option(
       '--override [override]',
-      'Override on file with same target name existing',
-      {
-        default: true,
-      }
+      'Override on file with same target name existing'
     )
+    .option('--no-override', 'Opposite of --override')
     .option('--file-name [fileName]', 'File name for generated')
-    .option('--dry-run [dryRun]', 'Dry run to see what is happening')
-    // TODO: interactive mode:  ignore all previous options
+    .option('--dir [dir]', 'Dir name for generated')
+    .option('--dry-run [dryRun]', 'Dry run to see what is happening', {
+      default: false,
+    })
     .action(async (name, options) => {
-      options.light = ensureBooleanType(options.light);
-      options.dotName = ensureBooleanType(options.dotName);
-      options.format = ensureBooleanType(options.format);
-      options.override = ensureBooleanType(options.override);
-
+      if (options.dryRun) {
+        consola.success('Executing in `dry run` mode, nothing will happen.');
+        consola.success('Controller generator invoked with:');
+        consola.info(`light: ${chalk.cyan(options.light)}`);
+        consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
+        consola.info(`override: ${chalk.cyan(options.override)}`);
+        consola.info(`file name: ${chalk.cyan(options.fileName ?? name)}`);
+      }
       if (!name) {
+        consola.warn('Controller name cannot be empty!');
         name = await inputPromptStringValue('controller name');
       }
 
+      // e.g. user
       const controllerNames = names(name);
       const fileNameNames = names(options.fileName ?? name);
 
-      console.log('options: ', options);
-
+      // e.g. user.controller
       const fileName = options.dotName
-        ? `${fileNameNames.dotName}.controller`
+        ? `${fileNameNames.fileName}.controller`
         : fileNameNames.fileName;
 
-      const exist = fs.existsSync(path.resolve(__dirname, `${fileName}.ts`));
+      // FIXME: validate
+      const generatedPath = path.resolve(
+        getControllerGenPath(options.dir),
+        `${fileName}.ts`
+      );
+
+      console.log('generatedPath: ', generatedPath);
+
+      consola.info(
+        `Controller will be created in ${chalk.green(generatedPath)}`
+      );
+
+      const exist = fs.existsSync(generatedPath);
 
       if (exist && !options.override) {
-        console.log('exist');
+        consola.error(
+          'File exist, enable `--override` to override existing file.'
+        );
         process.exit(0);
       } else if (exist) {
-        console.log('overriding exist file');
+        consola.warn('overriding exist file');
       }
 
       const tmp = fs.readFileSync(
@@ -78,13 +117,10 @@ export const useControllerGenerator = (cli: CAC) => {
 
       const template = EJSCompile(tmp, {})({ name: controllerNames.className });
 
-      const outputContent = options.format
-        ? prettier.format(template, { parser: 'typescript' })
-        : template;
+      const outputContent = prettier.format(template, { parser: 'typescript' });
 
-      fs.writeFileSync(
-        path.resolve(__dirname, `${fileName}.ts`),
-        outputContent
-      );
+      if (!options.dryRun) {
+        fs.writeFileSync(generatedPath, outputContent);
+      }
     });
 };
