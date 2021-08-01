@@ -10,7 +10,7 @@ import consola from 'consola';
 import chalk from 'chalk';
 import findUp from 'find-up';
 
-const DEFAULT_CONTROLLER_PATH = 'controller';
+const DEFAULT_CONTROLLER_DIR_PATH = 'controller';
 
 const getControllerGenPath = (userDir?: string) => {
   const nearestProjectDir = path.dirname(
@@ -24,7 +24,7 @@ const getControllerGenPath = (userDir?: string) => {
     : path.resolve(
         nearestProjectDir,
         'src',
-        userDir ? userDir : DEFAULT_CONTROLLER_PATH
+        userDir ? userDir : DEFAULT_CONTROLLER_DIR_PATH
       );
 
   fs.ensureDirSync(controllerPath);
@@ -62,11 +62,6 @@ export const useControllerGenerator = (cli: CAC) => {
     .action(async (name, options) => {
       if (options.dryRun) {
         consola.success('Executing in `dry run` mode, nothing will happen.');
-        consola.success('Controller generator invoked with:');
-        consola.info(`light: ${chalk.cyan(options.light)}`);
-        consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
-        consola.info(`override: ${chalk.cyan(options.override)}`);
-        consola.info(`file name: ${chalk.cyan(options.fileName ?? name)}`);
       }
       if (!name) {
         consola.warn('Controller name cannot be empty!');
@@ -87,8 +82,6 @@ export const useControllerGenerator = (cli: CAC) => {
         getControllerGenPath(options.dir),
         `${fileName}.ts`
       );
-
-      console.log('generatedPath: ', generatedPath);
 
       consola.info(
         `Controller will be created in ${chalk.green(generatedPath)}`
@@ -121,6 +114,12 @@ export const useControllerGenerator = (cli: CAC) => {
 
       if (!options.dryRun) {
         fs.writeFileSync(generatedPath, outputContent);
+      } else {
+        consola.success('Controller generator invoked with:');
+        consola.info(`light: ${chalk.cyan(options.light)}`);
+        consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
+        consola.info(`override: ${chalk.cyan(options.override)}`);
+        consola.info(`file name: ${chalk.cyan(options.fileName ?? name)}`);
       }
     });
 };

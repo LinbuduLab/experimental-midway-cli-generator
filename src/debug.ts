@@ -1,10 +1,35 @@
 import { CAC } from 'cac';
-import * as path from 'path';
-import * as fs from 'fs-extra';
-import * as findUp from 'find-up';
-import * as prettier from 'prettier';
-import { ensureBooleanType, inputPromptStringValue } from './lib/helper';
-import * as jsonfile from 'jsonfile';
+import path from 'path';
+import fs from 'fs-extra';
+import findUp from 'find-up';
+import prettier from 'prettier';
+import { inputPromptStringValue } from './lib/helper';
+import jsonfile from 'jsonfile';
+import consola from 'consola';
+import chalk from 'chalk';
+
+const DEFAULT_DEBUG_FILE_PATH = '.vscode/launch.json';
+
+const getDebugGenPath = () => {
+  const nearestProjectDir = path.dirname(
+    findUp.sync(['package.json'], {
+      type: 'file',
+    })
+  );
+
+  const debugPath = process.env.MW_GEN_LOCAL
+    ? path.resolve(__dirname, '../project', DEFAULT_DEBUG_FILE_PATH)
+    : path.resolve(nearestProjectDir, DEFAULT_DEBUG_FILE_PATH);
+
+  fs.ensureFileSync(debugPath);
+
+  if (process.env.MW_GEN_LOCAL) {
+    consola.info('Using local project:');
+    consola.info(debugPath);
+  }
+
+  return debugPath;
+};
 
 export const useDebuggerGenerator = (cli: CAC) => {
   cli
@@ -15,45 +40,33 @@ export const useDebuggerGenerator = (cli: CAC) => {
     .option('--port [port]', 'Debugger port', {
       default: 7001,
     })
-    .option('--restart [restart]', 'Restart debugger', {
-      default: true,
-    })
-    .option(
-      '--format [format]',
-      'Format generated content before write into disk',
-      {
-        default: true,
-      }
-    )
+
     .option('--dry-run [dryRun]', 'Dry run to see what is happening')
     .action(async (name, options) => {
-      options.restart = ensureBooleanType(options.restart);
-      options.format = ensureBooleanType(options.format);
-
-      if (!name) {
-        // name = await inputPromptStringValue(
-        //   'debug configuration name',
-        //   'Midway Local'
-        // );
-        name = 'Midway Local';
+      if (options.dryRun) {
+        consola.success('Executing in `dry run` mode, nothing will happen.');
       }
 
-      const filePath = '.vscode/launch.json';
+      if (!name) {
+        name = await inputPromptStringValue(
+          'debug configuration name',
+          'Midway Local'
+        );
+      }
 
-      const absConfigurationPath = path.join(
-        path.dirname(findUp.sync('package.json')),
-        filePath
+      const generatedPath = getDebugGenPath();
+
+      consola.info(
+        `Debug config path will be created in ${chalk.green(generatedPath)}`
       );
 
-      const prevExist = fs.existsSync(absConfigurationPath);
+      const prevExist = fs.existsSync(generatedPath);
 
       // use midway built-in api to get correct workspace path
-      fs.ensureFileSync(absConfigurationPath);
-
       let prevContent: any = {};
 
       try {
-        prevContent = jsonfile.readFileSync(absConfigurationPath);
+        prevContent = jsonfile.readFileSync(generatedPath);
       } catch (error) {
         prevContent = {};
       }
@@ -83,7 +96,7 @@ export const useDebuggerGenerator = (cli: CAC) => {
       if (
         !prevExist ||
         !Object.keys(prevContent).length ||
-        !Object.keys(prevContent.configuration).length
+        !prevContent.configuration.length
       ) {
         writeContent.version = '0.2.0';
         writeContent.configuration = [createDebuggerConfiguration()];
@@ -100,10 +113,8 @@ export const useDebuggerGenerator = (cli: CAC) => {
       }
 
       fs.writeFileSync(
-        absConfigurationPath,
-        options.format
-          ? prettier.format(JSON.stringify(writeContent), { parser: 'json' })
-          : JSON.stringify(writeContent)
+        generatedPath,
+        prettier.format(JSON.stringify(writeContent), { parser: 'json' })
       );
     });
 };
