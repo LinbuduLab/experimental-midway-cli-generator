@@ -27,7 +27,7 @@ const getControllerGenPath = (userDir?: string) => {
         userDir ? userDir : DEFAULT_CONTROLLER_DIR_PATH
       );
 
-  fs.ensureDirSync(controllerPath);
+  // fs.ensureDirSync(controllerPath);
 
   if (process.env.MW_GEN_LOCAL) {
     consola.info('Using local project:');
@@ -113,6 +113,7 @@ export const useControllerGenerator = (cli: CAC) => {
       const outputContent = prettier.format(template, { parser: 'typescript' });
 
       if (!options.dryRun) {
+        fs.ensureFileSync(generatedPath);
         fs.writeFileSync(generatedPath, outputContent);
       } else {
         consola.success('Controller generator invoked with:');

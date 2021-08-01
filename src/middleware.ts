@@ -50,7 +50,7 @@ const getMiddlewarerGenPath = (userDir?: string) => {
         userDir ? userDir : DEFAULT_MIDDLEWARE_DIR_PATH
       );
 
-  fs.ensureDirSync(middlewareDirPath);
+  // fs.ensureDirSync(middlewareDirPath);
 
   if (process.env.MW_GEN_LOCAL) {
     consola.info('Using local project:');
@@ -146,6 +146,7 @@ export const useMiddlewareGenerator = (cli: CAC) => {
       const outputContent = prettier.format(template, { parser: 'typescript' });
 
       if (!options.dryRun) {
+        fs.ensureFileSync(generatedFilePath);
         fs.writeFileSync(generatedFilePath, outputContent);
       } else {
         consola.success('Middleware generator invoked with:');

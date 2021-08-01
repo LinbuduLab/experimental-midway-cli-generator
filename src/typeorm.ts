@@ -6,6 +6,10 @@ import { compile as EJSCompile } from 'ejs';
 import * as prettier from 'prettier';
 import { ensureBooleanType, inputPromptStringValue } from './lib/helper';
 import { names, updateGitIgnore } from './lib/helper';
+import consola from 'consola';
+import chalk from 'chalk';
+import findUp from 'find-up';
+import { capitalCase } from './lib/case/capital-case';
 
 // mw g component orm setup/entity
 // mw g component tgql --interactive
@@ -25,6 +29,55 @@ export enum TypeORMGenerator {
   ENTITY = 'ENTITY',
   SUBSCRIBER = 'SUBSCRIBER',
 }
+
+const DEFAULT_ENTITY_DIR_PATH = 'entity';
+const DEFAULT_SUBSCRIBER_DIR_PATH = 'entity/subscriber';
+
+const getTypeORMEntityGenPath = (userDir?: string) => {
+  const nearestProjectDir = path.dirname(
+    findUp.sync(['package.json'], {
+      type: 'file',
+    })
+  );
+
+  const entityPath = process.env.MW_GEN_LOCAL
+    ? path.resolve(__dirname, '../project/src/entity')
+    : path.resolve(
+        nearestProjectDir,
+        'src',
+        userDir ? userDir : DEFAULT_ENTITY_DIR_PATH
+      );
+
+  if (process.env.MW_GEN_LOCAL) {
+    consola.info('Using local project:');
+    consola.info(entityPath);
+  }
+
+  return entityPath;
+};
+
+const getTypeORMSubscriberGenPath = (userDir?: string) => {
+  const nearestProjectDir = path.dirname(
+    findUp.sync(['package.json'], {
+      type: 'file',
+    })
+  );
+
+  const subscriberPath = process.env.MW_GEN_LOCAL
+    ? path.resolve(__dirname, '../project/src/entity/subscriber')
+    : path.resolve(
+        nearestProjectDir,
+        'src',
+        userDir ? userDir : DEFAULT_SUBSCRIBER_DIR_PATH
+      );
+
+  if (process.env.MW_GEN_LOCAL) {
+    consola.info('Using local project:');
+    consola.info(subscriberPath);
+  }
+
+  return subscriberPath;
+};
 
 export const useTypeORMGenerator = (cli: CAC) => {
   cli
@@ -50,30 +103,36 @@ export const useTypeORMGenerator = (cli: CAC) => {
       default: true,
     })
 
-    // ---
-    .option(
-      '--format [format]',
-      'Format generated content before write into disk',
-      {
-        default: true,
-      }
-    )
     .option('--file-name [fileName]', 'File name for entity/subscriber')
     .option('--dot-name [dotName]', 'Use dot name like user.entity.ts', {
       default: true,
     })
+    .option('--dir [dir]', 'Dir name for generated')
     .option('--dry-run [dryRun]', 'Dry run to see what is happening')
     .action(async (type: TypeORMGenerator, name, options) => {
+      if (options.dryRun) {
+        consola.success('Executing in `dry run` mode, nothing will happen.');
+      }
+
       if (!['setup', 'entity', 'subscriber'].includes(type)) {
-        console.log('invalid sub-command ');
+        consola.error(
+          `Invalid generator type: ${type}, use one of setup/entiy/subscriber`
+        );
         process.exit(0);
       }
+
+      if (['entity', 'subscriber'].includes(type) && !name) {
+        const capitalCaseRequireName = capitalCase(type);
+        consola.warn(`${capitalCaseRequireName} name cannot be empty!`);
+        name = await inputPromptStringValue(`${type} name`);
+      }
+
       options.activeRecord = ensureBooleanType(options.activeRecord);
       options.relation = ensureBooleanType(options.relation);
       options.dotName = ensureBooleanType(options.dotName);
       options.transaction = ensureBooleanType(options.transaction);
 
-      let finalFileName: string;
+      let finalFilePath: string;
       let finalFileContent: string;
 
       const nameNames = names(name);
@@ -112,11 +171,21 @@ export const useTypeORMGenerator = (cli: CAC) => {
             activeRecord: options.activeRecord,
           });
 
-          const outputContentEntity = options.format
-            ? prettier.format(templateEntity, { parser: 'typescript' })
-            : templateEntity;
+          const outputContentEntity = prettier.format(templateEntity, {
+            parser: 'typescript',
+          });
 
-          finalFileName = `${writeFileNameEntity}.ts`;
+          const entityDirPath = getTypeORMEntityGenPath(options.dir);
+
+          finalFilePath = path.resolve(
+            entityDirPath,
+            `${writeFileNameEntity}.ts`
+          );
+
+          consola.info(
+            `Entity will be created in ${chalk.green(finalFilePath)}`
+          );
+
           finalFileContent = outputContentEntity;
 
           break;
@@ -139,19 +208,47 @@ export const useTypeORMGenerator = (cli: CAC) => {
             transaction: options.transaction,
           });
 
-          const outputContent = options.format
-            ? prettier.format(template, { parser: 'typescript' })
-            : template;
+          const outputContent = prettier.format(template, {
+            parser: 'typescript',
+          });
 
-          finalFileName = `${writeFileName}.ts`;
+          const subscriberDirPath = getTypeORMSubscriberGenPath(options.dir);
+
+          finalFilePath = path.resolve(
+            subscriberDirPath,
+            `${writeFileName}.ts`
+          );
+
+          consola.info(
+            `Subscriber will be created in ${chalk.green(finalFilePath)}`
+          );
+
           finalFileContent = outputContent;
 
           break;
       }
 
-      fs.writeFileSync(
-        path.resolve(__dirname, finalFileName),
-        finalFileContent
-      );
+      if (!options.dryRun) {
+        fs.ensureFileSync(finalFilePath);
+        fs.writeFileSync(finalFilePath, finalFileContent);
+      } else {
+        consola.success('TypeORM generator invoked with:');
+        consola.info(`type: ${chalk.cyan(type)}`);
+        ['entity', 'subscriber'].includes(type) &&
+          consola.info(`name: ${chalk.cyan(name)}`);
+
+        if (type.toLocaleUpperCase() === TypeORMGenerator.ENTITY) {
+          consola.info(`active record: ${chalk.cyan(options.activeRecord)}`);
+          consola.info(`relation: ${chalk.cyan(options.relation)}`);
+        }
+
+        if (type.toLocaleUpperCase() === TypeORMGenerator.SUBSCRIBER) {
+          consola.info(`transaction: ${chalk.cyan(options.transaction)}`);
+        }
+
+        consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
+        consola.info(`file name: ${chalk.cyan(options.fileName ?? name)}`);
+        consola.info(`dir: ${chalk.cyan(options.dir)}`);
+      }
     });
 };

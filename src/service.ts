@@ -27,7 +27,7 @@ const getServiceGenPath = (userDir?: string) => {
         userDir ? userDir : DEFAULT_SERVICE_DIR_PATH
       );
 
-  fs.ensureDirSync(servicePath);
+  // fs.ensureDirSync(servicePath);
 
   if (process.env.MW_GEN_LOCAL) {
     consola.info('Using local project:');
@@ -103,6 +103,7 @@ export const useServiceGenerator = (cli: CAC) => {
       const outputContent = prettier.format(template, { parser: 'typescript' });
 
       if (!options.dryRun) {
+        fs.ensureFileSync(generatedPath);
         fs.writeFileSync(generatedPath, outputContent);
       } else {
         consola.success('Service generator invoked with:');
