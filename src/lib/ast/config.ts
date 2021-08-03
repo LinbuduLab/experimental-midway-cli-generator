@@ -9,7 +9,11 @@ import * as strip from 'strip-comments';
 
 import { addImportDeclaration, ImportType } from './add-import';
 import { addConfigKey } from './set-config-key';
-import { tmp, getExistClassMethods } from './configuration';
+import {
+  tmp,
+  getExistClassMethods,
+  updateDecoratorArrayArgs,
+} from './configuration';
 
 const project = new Project();
 
@@ -21,7 +25,14 @@ const configurationSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/midway-configuration.ts')
 );
 
-getExistClassMethods(configurationSource);
+// getExistClassMethods(configurationSource);
+
+updateDecoratorArrayArgs(
+  configurationSource,
+  'Configuration',
+  'imports',
+  'orm'
+);
 
 // addConfigKey(configSource, 'd', 'xxx');
 

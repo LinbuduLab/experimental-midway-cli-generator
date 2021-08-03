@@ -9,6 +9,7 @@ import * as orm from '@midwayjs/orm';
   imports: [orm],
   importConfigs: ['./config'],
 })
+@Ctx({})
 export class ContainerConfiguration implements ILifeCycle {
   @App()
   app: IMidwayKoaApplication;
