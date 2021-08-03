@@ -354,6 +354,34 @@ export function addClassProperty(
     type: propType,
   });
 
+  // FIXME: empty line
+
+  source.saveSync();
+}
+
+type MidwayPropDecorators = 'Inject' | 'App';
+
+export function addClassPropertyWithMidwayDecorator(
+  source: SourceFile,
+  propKey: string,
+  decorators: MidwayPropDecorators
+) {
+  const propType = decorators === 'App' ? 'IMidwayApplication' : 'unknown';
+
+  if (propType === 'IMidwayApplication') {
+    addNamedImports(source, '@midwayjs/core', ['IMidwayApplication']);
+  }
+
+  addNamedImports(source, '@midwayjs/decorator', [decorators]);
+
+  addClassProperty(
+    source,
+    'ContainerConfiguration',
+    propKey,
+    [decorators],
+    propType
+  );
+
   source.saveSync();
 }
 

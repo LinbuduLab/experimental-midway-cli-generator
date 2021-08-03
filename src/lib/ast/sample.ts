@@ -18,6 +18,7 @@ import {
   getLifeCycleClassMethods,
   addPlainClassMethods,
   addClassProperty,
+  addClassPropertyWithMidwayDecorator,
 } from './configuration';
 
 const project = new Project();
@@ -30,13 +31,13 @@ const configurationSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/midway-configuration.ts')
 );
 
-addClassProperty(
-  configurationSource,
-  'ContainerConfiguration',
-  'someProp',
-  ['Inject'],
-  'IMidwayKoaApplication'
-);
+// addClassProperty(
+//   configurationSource,
+//   'ContainerConfiguration',
+//   'someProp',
+//   ['Inject'],
+//   'IMidwayKoaApplication'
+// );
 
 // getExistClassMethods(configurationSource);
 
