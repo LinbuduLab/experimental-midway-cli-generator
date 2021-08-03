@@ -367,7 +367,51 @@ export function addLifeCycleMethods(
 export function ensureLifeCycleMethodArguments(
   source: SourceFile,
   methods: LifeCycleMethod[]
-) {}
+) {
+  const existMethodDeclarations = getExistClassMethodsDeclaration(
+    source,
+    'ContainerConfiguration'
+  );
+
+  const shouldBeUpdated: MethodDeclaration[] = [];
+
+  existMethodDeclarations.forEach((m, idx) => {
+    if (m.getFirstChildByKind(SyntaxKind.SyntaxList).getText() !== 'async') {
+      return;
+    }
+
+    const argsSyntaxList = m.getChildrenOfKind(SyntaxKind.SyntaxList)[1];
+
+    // 参数为空：直接补全
+    if (!argsSyntaxList) {
+      return;
+    }
+
+    const paramSyntaxList = argsSyntaxList.getChildrenOfKind(
+      SyntaxKind.Parameter
+    );
+
+    // 参数数量不正确 要求用户补全
+    if (paramSyntaxList.length !== 2) {
+      return;
+    }
+
+    // argsSyntaxList.forEach(a => {
+    //   if(){}
+    // });
+  });
+
+  // const argsNotPreparedMethod = existMethodDeclarations
+  // console.log(
+  //   existMethodDeclarations[0]
+  //     .getChildrenOfKind(SyntaxKind.SyntaxList)[1]
+  //     .getFirstChildByKind(SyntaxKind.Parameter)
+  //     .getChildren()
+  //     .map(x => x.getKindName())
+  // );
+
+  // console.log(existMethodDeclarations[0].getText());
+}
 
 export function addClassProperty(
   source: SourceFile,

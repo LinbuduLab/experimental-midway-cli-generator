@@ -19,6 +19,7 @@ import {
   addPlainClassMethods,
   addClassProperty,
   addClassPropertyWithMidwayDecorator,
+  ensureLifeCycleMethodArguments,
 } from './configuration';
 import { insertFunctionBodyStatement } from './plugin';
 
@@ -32,7 +33,9 @@ const configurationSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/midway-configuration.ts')
 );
 
-insertFunctionBodyStatement(configurationSource, 'onReady', []);
+// insertFunctionBodyStatement(configurationSource, 'onReady', []);
+
+ensureLifeCycleMethodArguments(configurationSource, []);
 
 // addClassProperty(
 //   configurationSource,
