@@ -6,10 +6,12 @@ import {
   VariableDeclarationKind,
   DecoratorStructure,
   ClassDeclaration,
+  StructureKind,
 } from 'ts-morph';
 import path from 'path';
 import fs from 'fs-extra';
 import strip from 'strip-comments';
+
 // update @Configuration
 // add onReady / onStop
 // add this.app.use to onReady
@@ -40,6 +42,30 @@ export function getExistClassMethods(source: SourceFile, className: string) {
     .map(m => m.getFirstChildByKind(SyntaxKind.Identifier).getText());
 
   return methods;
+}
+
+export function getExistClassProps(source: SourceFile, className: string) {
+  const classDeclarations = source
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getChildrenOfKind(SyntaxKind.ClassDeclaration);
+
+  const correspondingClass = classDeclarations.filter(
+    classDecs =>
+      classDecs.getFirstChildByKind(SyntaxKind.Identifier).getText() ===
+      className
+  );
+
+  if (!correspondingClass.length) {
+    return;
+  }
+
+  const correspondingClassItem = correspondingClass[0];
+
+  const props = correspondingClassItem
+    .getProperties()
+    .map(m => m.getFirstChildByKind(SyntaxKind.Identifier).getText());
+
+  return props;
 }
 
 // FIXME: find by name instead of index
@@ -289,6 +315,43 @@ export function addLifeCycleMethods(
       statements: '',
       typeParameters: [],
     });
+  });
+
+  source.saveSync();
+}
+
+export function addClassProperty(
+  source: SourceFile,
+  className: string,
+  propKey: string,
+  decorators?: string[],
+  propType?: string
+) {
+  const existClassProps = getExistClassProps(source, className);
+
+  if (existClassProps.includes(propKey)) {
+    return;
+  }
+  const classDec = source
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getFirstChildByKind(SyntaxKind.ClassDeclaration);
+
+  if (!classDec) {
+    return;
+  }
+
+  const applyDecorators: Array<DecoratorStructure> = decorators.map(
+    decorator => ({
+      name: decorator,
+      kind: StructureKind.Decorator,
+      arguments: [],
+    })
+  );
+
+  classDec.addProperty({
+    name: propKey,
+    decorators: applyDecorators,
+    type: propType,
   });
 
   source.saveSync();

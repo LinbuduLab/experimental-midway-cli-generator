@@ -1,55 +1,124 @@
 import {
   ArrowFunction,
-  Project,
+  SourceFile,
   SyntaxKind,
   VariableDeclarationKind,
+  ts,
 } from 'ts-morph';
-import * as path from 'path';
-import * as strip from 'strip-comments';
+import path from 'path';
+import fs from 'fs-extra';
+import prettier from 'prettier';
+import strip from 'strip-comments';
+import flatten from 'lodash/flatten';
 
-import { addImportDeclaration, ImportType } from './add-import';
-import { addConfigKey } from './set-config-key';
-import {
-  tmp,
-  getExistClassMethods,
-  updateDecoratorArrayArgs,
-  addNamedImports,
-  addLifeCycleMethods,
-  getLifeCycleClassMethods,
-  addPlainClassMethods,
-} from './configuration';
+// export const x = {}
+export function addConfigExport(source: SourceFile, key: string, value: any) {}
 
-const project = new Project();
+// config.x = {}
+// 仅适用于默认导出方法形式
+export function addConfigKey(source: SourceFile, key: string, value: any) {
+  console.log(
+    //     [
+    //   'ExportKeyword',
+    //   'DefaultKeyword',
+    //   'ArrowFunction',
+    //   'SemicolonToken'
+    // ]
+    source
+      .getFirstChildByKind(SyntaxKind.SyntaxList)
+      .getFirstChildByKind(SyntaxKind.ExportAssignment)
+      .getChildren()
+      .map(x => x.getKindName())
+  );
 
-const configSource = project.addSourceFileAtPath(
-  path.resolve(__dirname, '../../base/config-origin/config.default.ts')
-);
+  // 获取默认导出的箭头函数
+  // TODO: 直接获取默认导出
+  const arrowFunc = source
+    .getExportedDeclarations()
+    .get('default')[0]
+    .asKind(SyntaxKind.ArrowFunction);
 
-const configurationSource = project.addSourceFileAtPath(
-  path.resolve(__dirname, '../../base/midway-configuration.ts')
-);
+  // 获取箭头函数内部的导出
 
-// getExistClassMethods(configurationSource);
+  // 返回值语句
+  const returnStatement = arrowFunc.getStatement(
+    s => s.getKind() === SyntaxKind.ReturnStatement
+  );
 
-// updateDecoratorArrayArgs(
-//   configurationSource,
-//   'Configuration',
-//   'imports',
-//   'orm'
-// );
+  // arrowFunc
+  //   .getBody()
+  //   .getFirstChildByKind(SyntaxKind.SyntaxList)
+  //   .getFirstChildByKind(SyntaxKind.ReturnStatement)
+  //   .getFullText();
 
-// addNamedImports(configurationSource, '@midwayjs/decorator', ['App', 'Inject']);
-// addLifeCycleMethods(configurationSource, ['onStop']);
+  const stripedReturnStatement = strip(returnStatement.getText());
 
-// addConfigKey(configSource, 'd', 'xxx');
+  const returnStatementIdx = returnStatement.getChildIndex();
 
-// tmp(configurationSource);
+  arrowFunc.removeStatement(returnStatementIdx);
 
-// 拿到默认导出 √
-// 拿到箭头函数 √
-// 拿到箭头函数内部进行分析 √
-// 新增 config.orm = {} √
-// 修改configuration
-// 新增import * as orm from "@midwayjs/orm"
-// 查看package.json是否存在 不存在则代替安装
-// 新增connection相关代码
+  const configVarIdentifier = arrowFunc
+    .getBody()
+    // const config = {} as DefaultConfig;
+    .getFirstChildByKind(SyntaxKind.VariableStatement)
+    .getFirstChildByKind(SyntaxKind.VariableDeclarationList)
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    //  [ 'Identifier', 'EqualsToken', 'AsExpression' ]
+    .getFirstChildByKind(SyntaxKind.VariableDeclaration)
+    .getFirstChildByKind(SyntaxKind.Identifier)
+    .getText();
+
+  const existPropAssignmentKeys = arrowFunc
+    .getBody()
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getChildrenOfKind(SyntaxKind.ExpressionStatement)
+    .map(child => {
+      const propsAssignTokens = child
+        // a.b = x
+        .getFirstChildByKind(SyntaxKind.BinaryExpression)
+        // a.b
+        .getFirstChildByKind(SyntaxKind.PropertyAccessExpression);
+      return propsAssignTokens;
+    })
+    .map(prop => {
+      // [ 'Identifier', 'DotToken', 'Identifier' ]
+      const children = prop.getChildren();
+      if (
+        children.length === 3 &&
+        children[1].getKind() === SyntaxKind.DotToken
+      ) {
+        return children[2].getText();
+      }
+    });
+
+  if (existPropAssignmentKeys.includes(key)) {
+    console.error(`Key ${key} exist !`);
+    process.exit(0);
+  }
+
+  // FIXME:
+  arrowFunc.addStatements(
+    `${configVarIdentifier}.${key} = ${JSON.stringify(value)}`
+  );
+
+  arrowFunc.addStatements(stripedReturnStatement);
+
+  source.saveSync();
+
+  // const absWritePath = source.getFilePath();
+
+  // const formatted = prettier.format(
+  //   fs.readFileSync(absWritePath, { encoding: 'utf8' }),
+  //   {
+  //     parser: 'typescript',
+  //   }
+  // );
+
+  // fs.writeFileSync(absWritePath, formatted);
+}
+
+export function updateArrayTypeConfig() {}
+
+export function updateObjectTypeConfig() {}
+
+export function updatePrimitiveTypeConfig() {}

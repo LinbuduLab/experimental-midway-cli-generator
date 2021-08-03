@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "tsnd --respawn --transpile-only  ./src/index.ts",
-    "ast": "tsnd --respawn --transpile-only ./src/lib/ast/config.ts",
+    "ast": "tsnd --respawn --transpile-only ./src/lib/ast/sample.ts",
     "test": "jest",
     "test:watch": "jest --watch"
   },
