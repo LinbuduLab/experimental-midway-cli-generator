@@ -16,6 +16,7 @@ import {
   addNamedImports,
   addLifeCycleMethods,
   getLifeCycleClassMethods,
+  addPlainClassMethods,
 } from './configuration';
 
 const project = new Project();

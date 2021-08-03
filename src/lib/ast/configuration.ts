@@ -198,9 +198,41 @@ export function addNamedImports(
 
 // 暂时只支持为 onReady onStop 添加return type
 // container: IMidwayContainer, app?: IMidwayApplication
-// export function addClassMethods(source: SourceFile, method: string) {
+// addAsync?
+export function addPlainClassMethods(
+  source: SourceFile,
+  className: string,
+  methods: string[]
+) {
+  const existClassMethods: string[] = getExistClassMethods(source, className);
+  const methodsCanBeAdded = methods.filter(
+    method => !existClassMethods.includes(method)
+  );
+  if (!methodsCanBeAdded.length) {
+    return;
+  }
+  const classDec = source
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getFirstChildByKind(SyntaxKind.ClassDeclaration);
 
-// }
+  if (!classDec) {
+    return;
+  }
+
+  methodsCanBeAdded.forEach(m => {
+    classDec.addMethod({
+      name: m,
+      // hasQuestionToken: true,
+      isAsync: false,
+      parameters: [],
+      returnType: 'void',
+      statements: 'console.log("Method Added By Midway Code Mod")',
+      typeParameters: [],
+    });
+  });
+
+  source.saveSync();
+}
 
 type LifeCycleMethod = 'onReady' | 'onStop';
 
