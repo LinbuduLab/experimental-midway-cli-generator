@@ -11,8 +11,26 @@ import prettier from 'prettier';
 import strip from 'strip-comments';
 import flatten from 'lodash/flatten';
 
+// export const x = {}
+export function addConfigExport(source: SourceFile, key: string, value: any) {}
+
+// config.x = {}
 // 仅适用于默认导出方法形式
 export function addConfigKey(source: SourceFile, key: string, value: any) {
+  console.log(
+    //     [
+    //   'ExportKeyword',
+    //   'DefaultKeyword',
+    //   'ArrowFunction',
+    //   'SemicolonToken'
+    // ]
+    source
+      .getFirstChildByKind(SyntaxKind.SyntaxList)
+      .getFirstChildByKind(SyntaxKind.ExportAssignment)
+      .getChildren()
+      .map(x => x.getKindName())
+  );
+
   // 获取默认导出的箭头函数
   // TODO: 直接获取默认导出
   const arrowFunc = source
@@ -26,6 +44,12 @@ export function addConfigKey(source: SourceFile, key: string, value: any) {
   const returnStatement = arrowFunc.getStatement(
     s => s.getKind() === SyntaxKind.ReturnStatement
   );
+
+  // arrowFunc
+  //   .getBody()
+  //   .getFirstChildByKind(SyntaxKind.SyntaxList)
+  //   .getFirstChildByKind(SyntaxKind.ReturnStatement)
+  //   .getFullText();
 
   const stripedReturnStatement = strip(returnStatement.getText());
 
@@ -77,9 +101,9 @@ export function addConfigKey(source: SourceFile, key: string, value: any) {
     `${configVarIdentifier}.${key} = ${JSON.stringify(value)}`
   );
 
-  // arrowFunc.addStatements(stripedReturnStatement);
+  arrowFunc.addStatements(stripedReturnStatement);
 
-  // source.saveSync();
+  source.saveSync();
 
   // const absWritePath = source.getFilePath();
 

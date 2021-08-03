@@ -9,11 +9,26 @@ import {
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as strip from 'strip-comments';
+import { map } from 'lodash';
 
 // update @Configuration
 // add onReady / onStop
 // add this.app.use to onReady
 // add console.log to onReady
+
+export function getExistClassMethods(source: SourceFile) {
+  return source
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getFirstChildByKind(SyntaxKind.ClassDeclaration)
+    .getChildAtIndexIfKind(6, SyntaxKind.SyntaxList)
+    .getChildren()
+    .map(child => {
+      if (child.getKind() === SyntaxKind.MethodDeclaration) {
+        return child.getFirstChildByKind(SyntaxKind.Identifier).getText();
+      }
+    })
+    .filter(Boolean);
+}
 
 export function tmp(source: SourceFile) {
   const tmp1 = source

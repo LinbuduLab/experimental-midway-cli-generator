@@ -9,7 +9,7 @@ import * as strip from 'strip-comments';
 
 import { addImportDeclaration, ImportType } from './add-import';
 import { addConfigKey } from './set-config-key';
-import { tmp } from './configuration';
+import { tmp, getExistClassMethods } from './configuration';
 
 const project = new Project();
 
@@ -17,11 +17,13 @@ const configSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/config-origin/config.default.ts')
 );
 
-// const configurationSource = project.addSourceFileAtPath(
-//   path.resolve(__dirname, '../../base/midway-configuration-origin.ts')
-// );
+const configurationSource = project.addSourceFileAtPath(
+  path.resolve(__dirname, '../../base/midway-configuration.ts')
+);
 
-addConfigKey(configSource, 'd', 'xxx');
+getExistClassMethods(configurationSource);
+
+// addConfigKey(configSource, 'd', 'xxx');
 
 // tmp(configurationSource);
 
