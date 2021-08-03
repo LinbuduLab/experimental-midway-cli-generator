@@ -5,6 +5,7 @@ import {
   SyntaxKind,
   VariableDeclarationKind,
   DecoratorStructure,
+  ClassDeclaration,
 } from 'ts-morph';
 import path from 'path';
 import fs from 'fs-extra';
@@ -14,38 +15,41 @@ import strip from 'strip-comments';
 // add this.app.use to onReady
 // add console.log to onReady
 
+// TODO: get methods / get methods declarations
+
 // FIXME:
 export function getExistClassMethods(source: SourceFile, className: string) {
-  return source
+  const classDeclarations = source
     .getFirstChildByKind(SyntaxKind.SyntaxList)
-    .getFirstChildByKind(SyntaxKind.ClassDeclaration)
-    .getChildAtIndexIfKind(6, SyntaxKind.SyntaxList)
-    .getChildren()
-    .map(child => {
-      if (child.getKind() === SyntaxKind.MethodDeclaration) {
-        return child.getFirstChildByKind(SyntaxKind.Identifier).getText();
-      }
-    })
-    .filter(Boolean);
+    .getChildrenOfKind(SyntaxKind.ClassDeclaration);
+
+  const correspondingClass = classDeclarations.filter(
+    classDecs =>
+      classDecs.getFirstChildByKind(SyntaxKind.Identifier).getText() ===
+      className
+  );
+
+  if (!correspondingClass.length) {
+    return;
+  }
+
+  const correspondingClassItem = correspondingClass[0];
+
+  const methods = correspondingClassItem
+    .getMethods()
+    .map(m => m.getFirstChildByKind(SyntaxKind.Identifier).getText());
+
+  return methods;
 }
 
 // FIXME: find by name instead of index
 export function getLifeCycleClassMethods(
   source: SourceFile
 ): LifeCycleMethod[] {
-  return source
-    .getFirstChildByKind(SyntaxKind.SyntaxList)
-    .getFirstChildByKind(SyntaxKind.ClassDeclaration)
-    .getChildAtIndexIfKind(6, SyntaxKind.SyntaxList)
-    .getChildren()
-    .map(child => {
-      if (child.getKind() === SyntaxKind.MethodDeclaration) {
-        return child
-          .getFirstChildByKind(SyntaxKind.Identifier)
-          .getText() as LifeCycleMethod;
-      }
-    })
-    .filter(Boolean);
+  return getExistClassMethods(
+    source,
+    'ContainerConfiguration'
+  ) as LifeCycleMethod[];
 }
 
 export function tmp(source: SourceFile) {
