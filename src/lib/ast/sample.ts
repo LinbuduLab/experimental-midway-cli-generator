@@ -20,6 +20,7 @@ import {
   addClassProperty,
   addClassPropertyWithMidwayDecorator,
 } from './configuration';
+import { insertFunctionBodyStatement } from './plugin';
 
 const project = new Project();
 
@@ -30,6 +31,8 @@ const configSource = project.addSourceFileAtPath(
 const configurationSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/midway-configuration.ts')
 );
+
+insertFunctionBodyStatement(configurationSource, 'onReady', []);
 
 // addClassProperty(
 //   configurationSource,

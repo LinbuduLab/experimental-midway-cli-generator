@@ -7,6 +7,7 @@ import {
   DecoratorStructure,
   ClassDeclaration,
   StructureKind,
+  MethodDeclaration,
 } from 'ts-morph';
 import path from 'path';
 import fs from 'fs-extra';
@@ -44,6 +45,50 @@ export function getExistClassMethods(source: SourceFile, className: string) {
   return methods;
 }
 
+export function getExistClassMethodsDeclaration(
+  source: SourceFile,
+  className: string
+): MethodDeclaration[];
+
+export function getExistClassMethodsDeclaration(
+  source: SourceFile,
+  className: string,
+  methodName?: string
+): MethodDeclaration;
+
+export function getExistClassMethodsDeclaration(
+  source: SourceFile,
+  className: string,
+  methodName?: string
+) {
+  const classDeclarations = source
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getChildrenOfKind(SyntaxKind.ClassDeclaration);
+
+  const correspondingClass = classDeclarations.filter(
+    classDecs =>
+      classDecs.getFirstChildByKind(SyntaxKind.Identifier).getText() ===
+      className
+  );
+
+  if (!correspondingClass.length) {
+    return;
+  }
+
+  const correspondingClassItem = correspondingClass[0];
+
+  const methods = correspondingClassItem.getMethods();
+  // .map(m => m.getFirstChildByKind(SyntaxKind.Identifier).getText());
+
+  if (methodName) {
+    return methods.filter(
+      m => m.getFirstChildByKind(SyntaxKind.Identifier).getText() === methodName
+    )[0];
+  } else {
+    return methods;
+  }
+}
+
 export function getExistClassProps(source: SourceFile, className: string) {
   const classDeclarations = source
     .getFirstChildByKind(SyntaxKind.SyntaxList)
@@ -68,7 +113,6 @@ export function getExistClassProps(source: SourceFile, className: string) {
   return props;
 }
 
-// FIXME: find by name instead of index
 export function getLifeCycleClassMethods(
   source: SourceFile
 ): LifeCycleMethod[] {
@@ -319,6 +363,11 @@ export function addLifeCycleMethods(
 
   source.saveSync();
 }
+
+export function ensureLifeCycleMethodArguments(
+  source: SourceFile,
+  methods: LifeCycleMethod[]
+) {}
 
 export function addClassProperty(
   source: SourceFile,
