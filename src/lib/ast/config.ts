@@ -13,6 +13,7 @@ import {
   tmp,
   getExistClassMethods,
   updateDecoratorArrayArgs,
+  addNamedImports,
 } from './configuration';
 
 const project = new Project();
@@ -27,12 +28,14 @@ const configurationSource = project.addSourceFileAtPath(
 
 // getExistClassMethods(configurationSource);
 
-updateDecoratorArrayArgs(
-  configurationSource,
-  'Configuration',
-  'imports',
-  'orm'
-);
+// updateDecoratorArrayArgs(
+//   configurationSource,
+//   'Configuration',
+//   'imports',
+//   'orm'
+// );
+
+addNamedImports(configurationSource, '@midwayjs/decorator', ['App', 'Inject']);
 
 // addConfigKey(configSource, 'd', 'xxx');
 

@@ -6,7 +6,7 @@ import { getConnection } from 'typeorm';
 import * as orm from '@midwayjs/orm';
 
 @Configuration({
-  imports: [orm],
+  imports: [orm, orm, orm],
   importConfigs: ['./config'],
 })
 @Ctx({})

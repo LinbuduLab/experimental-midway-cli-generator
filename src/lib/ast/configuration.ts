@@ -6,11 +6,9 @@ import {
   VariableDeclarationKind,
   DecoratorStructure,
 } from 'ts-morph';
-import * as path from 'path';
-import * as fs from 'fs-extra';
-import * as strip from 'strip-comments';
-import { map } from 'lodash';
-
+import path from 'path';
+import fs from 'fs-extra';
+import strip from 'strip-comments';
 // update @Configuration
 // add onReady / onStop
 // add this.app.use to onReady
@@ -132,7 +130,36 @@ export function updateDecoratorArrayArgs(
   source.saveSync();
 }
 
-export function addClassMethod() {}
+export function addNamedImports(
+  source: SourceFile,
+  importSpec: string,
+  members: string[]
+): void {
+  const importDec = source
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getChildrenOfKind(SyntaxKind.ImportDeclaration)
+    .filter(importDec => {
+      const importString = importDec
+        .getFirstChildByKind(SyntaxKind.StringLiteral)
+        .getText();
+      return `'${importSpec}'` === importString;
+    })[0];
+
+  const importClause = importDec.getImportClause();
+  const namedImports = importClause.getNamedImports().map(x => x.getText());
+
+  const namedImportsCanBeAdded = members.filter(
+    mem => !namedImports.includes(mem)
+  );
+
+  if (!namedImportsCanBeAdded.length) {
+    return;
+  }
+
+  importDec.addNamedImports(namedImportsCanBeAdded);
+
+  source.saveSync();
+}
 
 export function updateFunctionBody() {}
 
