@@ -5,19 +5,16 @@
   "repository": "https://github.com/linbudu599/experimental-midway-cli-generator.git",
   "author": "Linbudu <48507806+linbudu599@users.noreply.github.com>",
   "license": "MIT",
-  "bin": {
-    "mw": "./bin/mw.js"
-  },
   "scripts": {
     "dev": "tsnd --respawn --transpile-only  ./src/index.ts",
-    "ast": "tsnd --respawn --transpile-only ./src/lib/ast/core.ts",
+    "ast": "tsnd --respawn --transpile-only ./src/lib/ast/config.ts",
     "test": "jest",
     "test:watch": "jest --watch"
   },
   "dependencies": {
     "cac": "^6.7.3",
-    "chalk": "^4.1.1",
-    "commander": "^8.0.0",
+    "chalk": "^4.1.2",
+    "commander": "^8.1.0",
     "consola": "^2.15.3",
     "ejs": "^3.1.6",
     "execa": "^5.1.1",
@@ -26,6 +23,7 @@
     "inquirer": "^8.1.2",
     "js-yaml": "^4.1.0",
     "jsonfile": "^6.1.0",
+    "lodash": "^4.17.21",
     "log-symbols": "^5.0.0",
     "minimatch": "^3.0.4",
     "mwts": "^1.2.2",
@@ -47,8 +45,9 @@
     "@types/jest": "^26.0.24",
     "@types/js-yaml": "^4.0.2",
     "@types/jsonfile": "^6.0.1",
+    "@types/lodash": "^4.14.171",
     "@types/minimatch": "^3.0.5",
-    "@types/node": "^16.4.2",
+    "@types/node": "^16.4.10",
     "@types/parse-json": "^4.0.0",
     "@types/prettier": "^2.3.2",
     "@types/strip-comments": "^2.0.1",

@@ -1,0 +1,20 @@
+{
+  // "extends": "./node_modules/mwts/tsconfig-midway.json",
+  "compileOnSave": true,
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES6",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": false,
+    "stripInternal": true,
+    "noImplicitReturns": false,
+    "strict": false,
+    "noEmitOnError": false,
+    "skipLibCheck": true
+  },
+  "exclude": ["dist", "node_modules", "test"]
+}
