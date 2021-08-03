@@ -14,6 +14,7 @@ import {
   getExistClassMethods,
   updateDecoratorArrayArgs,
   addNamedImports,
+  addLifeCycleMethods,
 } from './configuration';
 
 const project = new Project();
@@ -36,6 +37,7 @@ const configurationSource = project.addSourceFileAtPath(
 // );
 
 addNamedImports(configurationSource, '@midwayjs/decorator', ['App', 'Inject']);
+addLifeCycleMethods(configurationSource, ['onStop']);
 
 // addConfigKey(configSource, 'd', 'xxx');
 

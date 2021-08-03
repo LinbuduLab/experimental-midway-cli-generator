@@ -14,7 +14,8 @@ import strip from 'strip-comments';
 // add this.app.use to onReady
 // add console.log to onReady
 
-export function getExistClassMethods(source: SourceFile) {
+// FIXME:
+export function getExistClassMethods(source: SourceFile, className: string) {
   return source
     .getFirstChildByKind(SyntaxKind.SyntaxList)
     .getFirstChildByKind(SyntaxKind.ClassDeclaration)
@@ -23,6 +24,25 @@ export function getExistClassMethods(source: SourceFile) {
     .map(child => {
       if (child.getKind() === SyntaxKind.MethodDeclaration) {
         return child.getFirstChildByKind(SyntaxKind.Identifier).getText();
+      }
+    })
+    .filter(Boolean);
+}
+
+// FIXME: find by name instead of index
+export function getLifeCycleClassMethods(
+  source: SourceFile
+): LifeCycleMethod[] {
+  return source
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getFirstChildByKind(SyntaxKind.ClassDeclaration)
+    .getChildAtIndexIfKind(6, SyntaxKind.SyntaxList)
+    .getChildren()
+    .map(child => {
+      if (child.getKind() === SyntaxKind.MethodDeclaration) {
+        return child
+          .getFirstChildByKind(SyntaxKind.Identifier)
+          .getText() as LifeCycleMethod;
       }
     })
     .filter(Boolean);
@@ -136,6 +156,7 @@ export function addNamedImports(
   members: string[]
 ): void {
   const importDec = source
+
     .getFirstChildByKind(SyntaxKind.SyntaxList)
     .getChildrenOfKind(SyntaxKind.ImportDeclaration)
     .filter(importDec => {
@@ -144,6 +165,16 @@ export function addNamedImports(
         .getText();
       return `'${importSpec}'` === importString;
     })[0];
+
+  if (!importDec) {
+    source.addImportDeclaration({
+      moduleSpecifier: importSpec,
+      namedImports: members,
+    });
+    source.saveSync();
+
+    return;
+  }
 
   const importClause = importDec.getImportClause();
   const namedImports = importClause.getNamedImports().map(x => x.getText());
@@ -157,6 +188,72 @@ export function addNamedImports(
   }
 
   importDec.addNamedImports(namedImportsCanBeAdded);
+
+  source.saveSync();
+}
+
+// 暂时只支持为 onReady onStop 添加return type
+// container: IMidwayContainer, app?: IMidwayApplication
+// export function addClassMethods(source: SourceFile, method: string) {
+
+// }
+
+type LifeCycleMethod = 'onReady' | 'onStop';
+
+const LIFE_CYCLE_METHODS: LifeCycleMethod[] = ['onReady', 'onStop'];
+
+export function addLifeCycleMethods(
+  source: SourceFile,
+  methods: LifeCycleMethod[]
+) {
+  const existClassMethods: LifeCycleMethod[] = getLifeCycleClassMethods(source);
+
+  const lifeCycleMethodsCanBeAdded = methods.filter(
+    method =>
+      LIFE_CYCLE_METHODS.includes(method) && !existClassMethods.includes(method)
+  );
+
+  if (!lifeCycleMethodsCanBeAdded.length) {
+    return;
+  } else {
+    addNamedImports(source, '@midwayjs/core', [
+      'IMidwayContainer',
+      'IMidwayApplication',
+    ]);
+  }
+
+  const lifeCycleClass = source
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getFirstChildByKind(SyntaxKind.ClassDeclaration);
+
+  lifeCycleMethodsCanBeAdded.forEach(m => {
+    lifeCycleClass.addMethod({
+      name: m,
+      // hasQuestionToken: true,
+      isAsync: true,
+      parameters: [
+        {
+          name: 'container',
+          type: 'IMidwayContainer',
+          hasQuestionToken: false,
+          initializer: null,
+          isReadonly: false,
+          isRestParameter: false,
+        },
+        {
+          name: 'app',
+          type: 'IMidwayApplication',
+          hasQuestionToken: true,
+          initializer: null,
+          isReadonly: false,
+          isRestParameter: false,
+        },
+      ],
+      returnType: 'Promise <void>',
+      statements: '',
+      typeParameters: [],
+    });
+  });
 
   source.saveSync();
 }

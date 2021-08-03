@@ -20,6 +20,4 @@ export class ContainerConfiguration implements ILifeCycle {
 
     console.log('[ TypeORM ] Mock Data Inserted');
   }
-
-  async onStop(): Promise<void> {}
 }
