@@ -7,7 +7,12 @@ import {
 import * as path from 'path';
 import * as strip from 'strip-comments';
 
-import { addImportDeclaration, ImportType } from './add-import';
+import {
+  addImportDeclaration,
+  ImportType,
+  findImportsDeclaration,
+  findImportsSpecifier,
+} from './import';
 import { addConfigKey } from './config';
 import {
   tmp,
@@ -33,9 +38,15 @@ const configurationSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/midway-configuration.ts')
 );
 
+// addImportDeclaration(configurationSource, 'x', 'y', ImportType.DEFAULT_IMPORT);
+
+findImportsDeclaration(configurationSource);
+
+// findImportsSpecifier(configurationSource);
+
 // insertFunctionBodyStatement(configurationSource, 'onReady', []);
 
-ensureLifeCycleMethodArguments(configurationSource, []);
+// ensureLifeCycleMethodArguments(configurationSource, []);
 
 // addClassProperty(
 //   configurationSource,
