@@ -269,6 +269,26 @@ export function removeImportDeclarationByTypes(
   apply && source.saveSync();
 }
 
+export function updateImportSpecifier(
+  source: SourceFile,
+  prevSpec: string,
+  updatedSpec: string,
+  apply = true
+) {
+  const sourceImportSpecifiers = findImportsSpecifier(source);
+
+  if (!sourceImportSpecifiers.includes(prevSpec)) {
+    consola.error(`Import from '${prevSpec}' does not exist!`);
+    process.exit(0);
+  }
+
+  const targetImport = findImportsDeclaration(source, prevSpec);
+
+  targetImport.setModuleSpecifier(updatedSpec);
+
+  apply && source.saveSync();
+}
+
 export function isDefaultImport(importSpec: ImportDeclaration): boolean {
   return Boolean(importSpec.getDefaultImport());
 }

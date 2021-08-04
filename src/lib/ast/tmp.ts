@@ -10,31 +10,30 @@ import fs from 'fs-extra';
 import prettier from 'prettier';
 import strip from 'strip-comments';
 import flatten from 'lodash/flatten';
+import consola from 'consola';
 
 // export const x = {}
 export function addConfigExport(source: SourceFile, key: string, value: any) {}
 
 // config.x = {}
 // 仅适用于默认导出方法形式
-export function addConfigKey(
-  source: SourceFile,
-  key: string,
-  value: any,
-  apply = true
-) {
-  const arrowFunc = source
+export function addConfigKey(source: SourceFile, key: string, value: any) {
+  const arrowFuncBlock = source
     .getFirstChildByKind(SyntaxKind.SyntaxList)
     .getFirstChildByKind(SyntaxKind.ExportAssignment)
-    .getFirstChildByKind(SyntaxKind.ArrowFunction);
+    .getFirstChildByKind(SyntaxKind.ArrowFunction)
+    .getFirstChildByKind(SyntaxKind.Block);
+  // .getFirstChildByKind(SyntaxKind.SyntaxList);
 
-  const returnStatement = arrowFunc
-    .getFirstChildByKind(SyntaxKind.Block)
-    .getFirstChildByKind(SyntaxKind.ReturnStatement);
+  const returnStatement = arrowFuncBlock.getFirstChildByKind(
+    SyntaxKind.ReturnStatement
+  );
 
-  const stripedReturnStatement = strip(returnStatement.getText());
+  const savedReturnText = strip(returnStatement.getText());
+  console.log('savedReturnText: ', savedReturnText);
 
-  const configVarIdentifier = arrowFunc
-    .getBody()
+  // FIXME: 只会拿到第一个变量声明
+  const configVarIdentifier = arrowFuncBlock
     // const config = {} as DefaultConfig;
     .getFirstChildByKind(SyntaxKind.VariableStatement)
     .getFirstChildByKind(SyntaxKind.VariableDeclarationList)
@@ -44,9 +43,7 @@ export function addConfigKey(
     .getFirstChildByKind(SyntaxKind.Identifier)
     .getText();
 
-  const existPropAssignmentKeys = arrowFunc
-    .getBody()
-    .getFirstChildByKind(SyntaxKind.SyntaxList)
+  const existPropAssignmentKeys = arrowFuncBlock
     .getChildrenOfKind(SyntaxKind.ExpressionStatement)
     .map(child => {
       const propsAssignTokens = child
@@ -68,20 +65,26 @@ export function addConfigKey(
     });
 
   if (existPropAssignmentKeys.includes(key)) {
-    console.error(`${configVarIdentifier}.${key} exist !`);
+    consola.error(`${configVarIdentifier}.${key} exist !`);
     process.exit(0);
   }
 
-  returnStatement.remove();
+  // 只有存在需要添加的key，才会删除返回语句
+  returnStatement.asKind(SyntaxKind.ReturnStatement).remove();
 
   // FIXME:
-  arrowFunc.addStatements(
+  arrowFuncBlock.addStatements(
     `${configVarIdentifier}.${key} = ${JSON.stringify(value)}`
   );
 
-  arrowFunc.addStatements(stripedReturnStatement);
+  console.log(arrowFuncBlock.getChildren().map(x => x.getKindName()));
 
-  apply && source.saveSync();
+  // ExpressionStatement
+  // SingleLineCommentTrivia
+
+  // arrowFunc.addStatements(stripedReturnStatement);
+
+  // source.saveSync();
 
   // const absWritePath = source.getFilePath();
 
