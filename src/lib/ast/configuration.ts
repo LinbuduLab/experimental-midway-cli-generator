@@ -406,7 +406,6 @@ export function ensureLifeCycleMethodArguments(
   apply && source.saveSync();
 }
 
-//
 export function ensureClassProperty(
   source: SourceFile,
   className: string,

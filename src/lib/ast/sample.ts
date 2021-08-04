@@ -17,7 +17,11 @@ import {
   removeImportDeclaration,
   removeImportDeclarationByTypes,
 } from './import';
-import { addConfigKey, addConfigExport } from './config';
+import {
+  addConfigKey,
+  addConfigExport,
+  updateConfigExportIdentifier,
+} from './config';
 import {
   getExistClassMethods,
   updateDecoratorArrayArgs,
@@ -40,6 +44,8 @@ const configSource = project.addSourceFileAtPath(
 const configurationSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/midway-configuration.ts')
 );
+
+updateConfigExportIdentifier(configSource, 'x', 'orm1');
 
 // getExistClassMethodsDeclaration(configurationSource, 'ContainerConfiguration');
 

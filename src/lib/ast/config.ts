@@ -4,6 +4,7 @@ import {
   SyntaxKind,
   VariableDeclarationKind,
   ts,
+  VariableStatement,
 } from 'ts-morph';
 import path from 'path';
 import fs from 'fs-extra';
@@ -25,41 +26,7 @@ export function addConfigExport(
   // 添加类型提示的方式
   // const exports
 
-  const topLevelVarStatements = source
-    .getFirstChildByKind(SyntaxKind.SyntaxList)
-    .getChildrenOfKind(SyntaxKind.VariableStatement);
-
-  const exportVarDecs = topLevelVarStatements.filter(v => {
-    const syntaxBeforeVarIdentifier = v.getFirstChildIfKind(
-      SyntaxKind.SyntaxList
-    );
-
-    return (
-      syntaxBeforeVarIdentifier &&
-      syntaxBeforeVarIdentifier.getText() &&
-      syntaxBeforeVarIdentifier.getText() === 'export'
-    );
-  });
-  const exportVars = exportVarDecs.map(v =>
-    v
-      .getFirstChildByKind(SyntaxKind.VariableDeclarationList)
-      .getFirstChildByKind(SyntaxKind.SyntaxList)
-      .getFirstChildByKind(SyntaxKind.VariableDeclaration)
-      // [ 'Identifier', 'EqualsToken', 'ObjectLiteralExpression' ]
-      .getFirstChildByKind(SyntaxKind.Identifier)
-      .getText()
-  );
-
-  // console.log('exportVarStatements: ', exportVars);
-
-  // console.log(
-  //   exportVarDecs[0]
-  //     .getFirstChildByKind(SyntaxKind.VariableDeclarationList)
-  //     .getFirstChildByKind(SyntaxKind.SyntaxList)
-  //     .getFirstChildByKind(SyntaxKind.VariableDeclaration)
-  //     .getChildren()
-  //     .map(x => x.getKindName())
-  // );
+  const exportVars = getExportVariableIdentifiers(source);
 
   if (exportVars.includes(key)) {
     consola.error(`export ${key} exist!`);
@@ -81,7 +48,102 @@ export function addConfigExport(
   apply && source.saveSync();
 }
 
-export function addTypeRefToExistExportConst() {}
+export function getExportVariableStatements(
+  source: SourceFile,
+  varIdentifier: string
+): VariableStatement;
+
+export function getExportVariableStatements(
+  source: SourceFile
+): VariableStatement[];
+
+export function getExportVariableStatements(
+  source: SourceFile,
+  varIdentifier?: string
+): VariableStatement | VariableStatement[] {
+  const topLevelVarStatements = source
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getChildrenOfKind(SyntaxKind.VariableStatement);
+
+  const exportVarStatements = topLevelVarStatements.filter(v => {
+    const syntaxBeforeVarIdentifier = v.getFirstChildIfKind(
+      SyntaxKind.SyntaxList
+    );
+
+    return (
+      syntaxBeforeVarIdentifier &&
+      syntaxBeforeVarIdentifier.getText() &&
+      syntaxBeforeVarIdentifier.getText() === 'export'
+    );
+  });
+
+  if (varIdentifier) {
+    return exportVarStatements.find(statement => {
+      return (
+        statement
+          .getFirstChildByKind(SyntaxKind.VariableDeclarationList)
+          .getFirstChildByKind(SyntaxKind.SyntaxList)
+          .getFirstChildByKind(SyntaxKind.VariableDeclaration)
+          .getFirstChildByKind(SyntaxKind.Identifier)
+          .getText() === varIdentifier
+      );
+    });
+  }
+
+  return exportVarStatements;
+}
+
+export function getExportVariableIdentifiers(source: SourceFile): string[] {
+  const exportVarStatements = getExportVariableStatements(source);
+  const exportVars = exportVarStatements.map(v =>
+    v
+      .getFirstChildByKind(SyntaxKind.VariableDeclarationList)
+      .getFirstChildByKind(SyntaxKind.SyntaxList)
+      .getFirstChildByKind(SyntaxKind.VariableDeclaration)
+      // [ 'Identifier', 'EqualsToken', 'ObjectLiteralExpression' ]
+      .getFirstChildByKind(SyntaxKind.Identifier)
+      .getText()
+  );
+
+  return exportVars;
+}
+
+export function updateConfigExportIdentifier(
+  source: SourceFile,
+  currentKey: string,
+  updatedKey: string,
+  apply = true
+) {
+  const exportVars = getExportVariableIdentifiers(source);
+
+  if (!exportVars.includes(currentKey)) {
+    consola.error(`export ${currentKey} doesnot exist!`);
+    return;
+  }
+
+  const targetVar = getExportVariableStatements(source, currentKey);
+
+  // source
+  //   .addVariableStatement({
+  //     declarationKind: VariableDeclarationKind.Const,
+  //     declarations: [
+  //       {
+  //         name: key,
+  //         initializer: writer => writer.write(JSON.stringify(value)),
+  //       },
+  //     ],
+  //   })
+  //   .setIsExported(true);
+
+  // apply && source.saveSync();
+}
+
+// export const x:xxx = {}
+export function addTypeRefToExistExportConst(
+  source: SourceFile,
+  exportVar: string,
+  typeRef: string
+) {}
 
 export function addTypeAssertionToExistExportConst() {}
 
