@@ -4,6 +4,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "ES6",
+    "lib": ["ES2021"],
     "moduleResolution": "node",
     "esModuleInterop": true,
     "experimentalDecorators": true,

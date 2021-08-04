@@ -85,13 +85,28 @@ export function addImportDeclaration(
   shouldApplySave ? source.saveSync() : void 0;
 }
 
-// 获得导入声明
+export function findImportsDeclaration(source: SourceFile): ImportDeclaration[];
+
 export function findImportsDeclaration(
-  source: SourceFile
-): ImportDeclaration[] {
+  source: SourceFile,
+  specifier: string
+): ImportDeclaration;
+
+// 获得所有导入声明
+export function findImportsDeclaration(
+  source: SourceFile,
+  specifier?: string
+): ImportDeclaration | ImportDeclaration[] {
   const importDeclarations = source
     .getFirstChildByKind(SyntaxKind.SyntaxList)
     .getChildrenOfKind(SyntaxKind.ImportDeclaration);
+
+  if (specifier) {
+    return importDeclarations.filter(imp => {
+      const str = imp.getFirstChildByKind(SyntaxKind.StringLiteral);
+      return str.getText() === `'${specifier}'`;
+    })[0];
+  }
 
   return importDeclarations;
 }
@@ -102,18 +117,22 @@ export function findImportsSpecifier(source: SourceFile): string[] {
 
   const specifiers = importDeclarations
     .map(imp => imp.getFirstChildByKind(SyntaxKind.StringLiteral))
-    .map(l => l.getText());
+    // TODO: use RegExp
+    .map(l => l.getText().replaceAll("'", ''));
 
   return specifiers;
 }
 
+// 新增具名导入成员
+// 在importSpec不存在时，会新增一条具名导入
+// 会过滤已存在的具名导入成员
 export function addNamedImportsMember(
   source: SourceFile,
   importSpec: string,
-  members: string[]
+  members: string[],
+  apply = true
 ): void {
   const importDec = source
-
     .getFirstChildByKind(SyntaxKind.SyntaxList)
     .getChildrenOfKind(SyntaxKind.ImportDeclaration)
     .filter(importDec => {
@@ -128,7 +147,7 @@ export function addNamedImportsMember(
       moduleSpecifier: importSpec,
       namedImports: members,
     });
-    source.saveSync();
+    apply && source.saveSync();
 
     return;
   }
@@ -146,5 +165,29 @@ export function addNamedImportsMember(
 
   importDec.addNamedImports(namedImportsCanBeAdded);
 
-  source.saveSync();
+  apply && source.saveSync();
+}
+
+export function updateDefaultImportClause(
+  source: SourceFile,
+  specifier: string,
+  updatedClause: string,
+  apply = true
+) {
+  const sourceImportSpecifiers = findImportsSpecifier(source);
+
+  if (!sourceImportSpecifiers.includes(specifier)) {
+    consola.error(`Import from '${specifier}' does not exist!`);
+    process.exit(0);
+  }
+
+  const targetImport = findImportsDeclaration(source, specifier);
+
+  if (!targetImport.getDefaultImport()) {
+    consola.error(`Import from '${specifier}' is not default import`);
+  }
+
+  targetImport.setDefaultImport(updatedClause);
+
+  apply && source.saveSync();
 }

@@ -12,6 +12,7 @@ import {
 import path from 'path';
 import fs from 'fs-extra';
 import strip from 'strip-comments';
+import { addNamedImportsMember } from './import';
 
 // update @Configuration
 // add onReady / onStop
@@ -224,48 +225,6 @@ export function updateDecoratorArrayArgs(
   source.saveSync();
 }
 
-export function addNamedImports(
-  source: SourceFile,
-  importSpec: string,
-  members: string[]
-): void {
-  const importDec = source
-
-    .getFirstChildByKind(SyntaxKind.SyntaxList)
-    .getChildrenOfKind(SyntaxKind.ImportDeclaration)
-    .filter(importDec => {
-      const importString = importDec
-        .getFirstChildByKind(SyntaxKind.StringLiteral)
-        .getText();
-      return `'${importSpec}'` === importString;
-    })[0];
-
-  if (!importDec) {
-    source.addImportDeclaration({
-      moduleSpecifier: importSpec,
-      namedImports: members,
-    });
-    source.saveSync();
-
-    return;
-  }
-
-  const importClause = importDec.getImportClause();
-  const namedImports = importClause.getNamedImports().map(x => x.getText());
-
-  const namedImportsCanBeAdded = members.filter(
-    mem => !namedImports.includes(mem)
-  );
-
-  if (!namedImportsCanBeAdded.length) {
-    return;
-  }
-
-  importDec.addNamedImports(namedImportsCanBeAdded);
-
-  source.saveSync();
-}
-
 // 暂时只支持为 onReady onStop 添加return type
 // container: IMidwayContainer, app?: IMidwayApplication
 // addAsync?
@@ -322,7 +281,7 @@ export function addLifeCycleMethods(
   if (!lifeCycleMethodsCanBeAdded.length) {
     return;
   } else {
-    addNamedImports(source, '@midwayjs/core', [
+    addNamedImportsMember(source, '@midwayjs/core', [
       'IMidwayContainer',
       'IMidwayApplication',
     ]);
@@ -462,10 +421,10 @@ export function addClassPropertyWithMidwayDecorator(
   const propType = decorators === 'App' ? 'IMidwayApplication' : 'unknown';
 
   if (propType === 'IMidwayApplication') {
-    addNamedImports(source, '@midwayjs/core', ['IMidwayApplication']);
+    addNamedImportsMember(source, '@midwayjs/core', ['IMidwayApplication']);
   }
 
-  addNamedImports(source, '@midwayjs/decorator', [decorators]);
+  addNamedImportsMember(source, '@midwayjs/decorator', [decorators]);
 
   addClassProperty(
     source,
