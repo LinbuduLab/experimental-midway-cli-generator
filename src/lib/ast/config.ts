@@ -18,6 +18,7 @@ export function addConfigExport(
   source: SourceFile,
   key: string,
   value: any,
+  useStringify = true,
   apply = true
 ) {
   // 又可以抽离成export相关的方法
@@ -39,7 +40,8 @@ export function addConfigExport(
       declarations: [
         {
           name: key,
-          initializer: writer => writer.write(JSON.stringify(value)),
+          initializer: writer =>
+            writer.write(useStringify ? JSON.stringify(value) : value),
         },
       ],
     })
@@ -123,19 +125,56 @@ export function updateConfigExportIdentifier(
 
   const targetVar = getExportVariableStatements(source, currentKey);
 
-  // source
-  //   .addVariableStatement({
-  //     declarationKind: VariableDeclarationKind.Const,
-  //     declarations: [
-  //       {
-  //         name: key,
-  //         initializer: writer => writer.write(JSON.stringify(value)),
-  //       },
-  //     ],
-  //   })
-  //   .setIsExported(true);
+  const targetVarDeclaration = targetVar
+    .getFirstChildByKind(SyntaxKind.VariableDeclarationList)
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getFirstChildByKind(SyntaxKind.VariableDeclaration);
 
-  // apply && source.saveSync();
+  const targetVarValueNode = targetVarDeclaration.getLastChild();
+
+  const targetVarValueKind = targetVarValueNode.getKind();
+  const targetVarTextValue = targetVarValueNode.getText();
+
+  if (targetVarValueKind === SyntaxKind.NumericLiteral) {
+    addConfigExport(
+      source,
+      updatedKey,
+      Number(targetVarTextValue),
+      undefined,
+      false
+    );
+    targetVar.remove();
+  } else if (targetVarValueKind === SyntaxKind.StringLiteral) {
+    addConfigExport(
+      source,
+      updatedKey,
+      String(targetVarTextValue).replaceAll("'", ''),
+      undefined,
+      false
+    );
+    targetVar.remove();
+  } else if (
+    [SyntaxKind.TrueKeyword, SyntaxKind.FalseKeyword].includes(
+      targetVarValueKind
+    )
+  ) {
+    addConfigExport(
+      source,
+      updatedKey,
+      targetVarTextValue !== 'false',
+      undefined,
+      false
+    );
+    targetVar.remove();
+  } else if (targetVarValueKind === SyntaxKind.ArrowFunction) {
+    addConfigExport(source, updatedKey, targetVarTextValue, false, false);
+    targetVar.remove();
+  } else if (targetVarValueKind === SyntaxKind.ObjectLiteralExpression) {
+    addConfigExport(source, updatedKey, targetVarTextValue, false, false);
+    targetVar.remove();
+  }
+
+  apply && source.saveSync();
 }
 
 // export const x:xxx = {}
