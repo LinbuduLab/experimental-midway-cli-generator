@@ -1,9 +1,6 @@
 import { SourceFile } from 'ts-morph';
-
-import {
-  ensureLifeCycleMethods,
-  getExistClassMethodsDeclaration,
-} from './configuration';
+import { getExistClassMethodsDeclaration } from './class';
+import { ensureLifeCycleMethods } from './configuration';
 
 export function insertFunctionBodyStatement(
   source: SourceFile,

@@ -16,9 +16,8 @@ import chalk from 'chalk';
 import findUp from 'find-up';
 import { capitalCase } from './lib/case';
 import { checkDepExist, installDep } from './lib/package';
-import { addConstExport } from './lib/ast/config';
+import { addConstExport, updateDecoratorArrayArgs } from './lib/ast';
 import { addImportDeclaration, ImportType } from './lib/ast/import';
-import { updateDecoratorArrayArgs } from './lib/ast/configuration';
 
 // setup：
 // 检查是否安装
