@@ -3,10 +3,10 @@ import { Configuration, App } from '@midwayjs/decorator';
 import { ILifeCycle } from '@midwayjs/core';
 import { IMidwayKoaApplication } from '@midwayjs/koa';
 import { getConnection } from 'typeorm';
-import * as orm from '@midwayjs/orm';
+import * as orm1 from '@midwayjs/orm';
 
 @Configuration({
-  imports: [orm, orm, orm],
+  imports: [orm1, orm1, orm1],
   importConfigs: ['./config'],
 })
 @Ctx({})

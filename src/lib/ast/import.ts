@@ -185,9 +185,35 @@ export function updateDefaultImportClause(
 
   if (!targetImport.getDefaultImport()) {
     consola.error(`Import from '${specifier}' is not default import`);
+    process.exit(0);
   }
 
   targetImport.setDefaultImport(updatedClause);
+
+  apply && source.saveSync();
+}
+
+export function updateNamespaceImportClause(
+  source: SourceFile,
+  specifier: string,
+  updatedNamespace: string,
+  apply = true
+) {
+  const sourceImportSpecifiers = findImportsSpecifier(source);
+
+  if (!sourceImportSpecifiers.includes(specifier)) {
+    consola.error(`Import from '${specifier}' does not exist!`);
+    process.exit(0);
+  }
+
+  const targetImport = findImportsDeclaration(source, specifier);
+
+  if (!targetImport.getNamespaceImport()) {
+    consola.error(`Import from '${specifier}' is not namespace import`);
+    process.exit(0);
+  }
+
+  targetImport.setNamespaceImport(updatedNamespace);
 
   apply && source.saveSync();
 }

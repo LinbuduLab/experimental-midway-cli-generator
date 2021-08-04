@@ -13,6 +13,7 @@ import {
   findImportsDeclaration,
   findImportsSpecifier,
   updateDefaultImportClause,
+  updateNamespaceImportClause,
 } from './import';
 import { addConfigKey } from './config';
 import {
@@ -37,3 +38,5 @@ const configSource = project.addSourceFileAtPath(
 const configurationSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/midway-configuration.ts')
 );
+
+updateNamespaceImportClause(configurationSource, '@midwayjs/orm', 'orm1');
