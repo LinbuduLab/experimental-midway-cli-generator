@@ -11,7 +11,6 @@ import consola from 'consola';
 import chalk from 'chalk';
 import findUp from 'find-up';
 import { capitalCase } from './lib/case/capital-case';
-import { TypeReferenceNode } from 'ts-morph';
 
 export enum TypeGraphQLGenerator {
   SETUP = 'SETUP',
@@ -44,7 +43,9 @@ const DEFAULT_RESOLVER_DIR_PATH = 'graphql/resolver';
 
 // 一期：
 // ObjectType、Resolver、Middleware
-// Setup
+// Setup:
+// 安装type-graphql graphql
+// 确保tsconfig配置正确
 
 const getTypeGraphQLGenPath = (userDir?: string) => {
   const nearestProjectDir = path.dirname(
@@ -154,6 +155,8 @@ export const useTypeGraphQLGenerator = (cli: CAC) => {
           if (name) {
             console.log('ignored extra args in setup generator');
           }
+
+          consola.error('Not Support Yet');
 
           break;
 

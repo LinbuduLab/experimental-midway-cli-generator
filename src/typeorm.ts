@@ -139,9 +139,9 @@ export const useTypeORMGenerator = (cli: CAC) => {
 
       switch (type.toLocaleUpperCase()) {
         case TypeORMGenerator.SETUP:
-          // if (!checkDepExist('@midwayjs/orm')) {
-          //   installDep('@midwayjs/orm');
-          // }
+          if (!checkDepExist('@midwayjs/orm')) {
+            installDep('@midwayjs/orm');
+          }
 
           const projectDirPath = process.env.GEN_LOCAL
             ? path.resolve(__dirname, '../project')
