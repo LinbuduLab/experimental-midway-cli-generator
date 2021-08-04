@@ -1,8 +1,5 @@
 import * as inquirer from 'inquirer';
-import { capitalCase } from '../case/capital-case';
-import { dotCase } from '../case/dot-case';
-import { lowerCase } from '../case/lower-case';
-import { constantCase } from '../case/constant-case';
+import { capitalCase, dotCase, lowerCase, constantCase } from '../case';
 import * as findUp from 'find-up';
 import * as path from 'path';
 import * as fs from 'fs-extra';

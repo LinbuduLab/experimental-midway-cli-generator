@@ -6,11 +6,10 @@ import { compile as EJSCompile } from 'ejs';
 import * as prettier from 'prettier';
 import { ensureBooleanType, inputPromptStringValue } from './lib/helper';
 import { names } from './lib/helper';
-import { constantCase } from './lib/case/constant-case';
 import consola from 'consola';
 import chalk from 'chalk';
 import findUp from 'find-up';
-import { capitalCase } from './lib/case/capital-case';
+import { capitalCase } from './lib/case';
 
 export enum TypeGraphQLGenerator {
   SETUP = 'SETUP',

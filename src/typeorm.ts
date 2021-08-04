@@ -14,7 +14,7 @@ import { names, updateGitIgnore } from './lib/helper';
 import consola from 'consola';
 import chalk from 'chalk';
 import findUp from 'find-up';
-import { capitalCase } from './lib/case/capital-case';
+import { capitalCase } from './lib/case';
 import { checkDepExist, installDep } from './lib/deps';
 import { addConfigExport } from './lib/ast/config';
 import { addImportDeclaration, ImportType } from './lib/ast/import';
