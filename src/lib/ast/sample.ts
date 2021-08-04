@@ -19,7 +19,6 @@ import {
 } from './import';
 import { addConfigKey, addConfigExport } from './config';
 import {
-  tmp,
   getExistClassMethods,
   updateDecoratorArrayArgs,
   addLifeCycleMethods,
@@ -42,8 +41,9 @@ const configurationSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/midway-configuration.ts')
 );
 
-getExistClassMethodsDeclaration(configurationSource, 'ContainerConfiguration');
+// getExistClassMethodsDeclaration(configurationSource, 'ContainerConfiguration');
 
-console.log(
-  getExistClassMethods(configurationSource, 'ContainerConfiguration')
-);
+// console.log(
+//   getExistClassMethods(configurationSource, 'ContainerConfiguration')
+// );
+updateDecoratorArrayArgs(configurationSource, 'Configuration', 'imports', 'x');

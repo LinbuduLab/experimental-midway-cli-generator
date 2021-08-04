@@ -122,6 +122,7 @@ export function getExistClassProps(source: SourceFile, className: string) {
   );
 }
 
+// 获取生命周期类已有的方法
 export function getLifeCycleClassMethods(
   source: SourceFile
 ): LifeCycleMethod[] {
@@ -129,29 +130,6 @@ export function getLifeCycleClassMethods(
     source,
     'ContainerConfiguration'
   ) as LifeCycleMethod[];
-}
-
-export function tmp(source: SourceFile) {
-  const tmp1 = source
-    .getExportedDeclarations()
-    .get('ContainerLifeCycle')[0]
-    .asKind(SyntaxKind.ClassDeclaration);
-
-  const tmp2 = tmp1.getDecorator('Configuration');
-
-  // const tmp3 = tmp2.addArgument(writer => writer.write('{}'));
-
-  const tmp3 = tmp2
-
-    .getArguments()[0]
-    .asKind(SyntaxKind.ObjectLiteralExpression);
-
-  console.log('tmp3: ', tmp3.getText());
-
-  // const tmp4 = tmp3.getChildren().map(x => x.getKindName());
-  // console.log('tmp4: ', tmp4);
-
-  // const tmp5 = tmp3.getChildAtIndexIfKind(1, SyntaxKind.SyntaxList);
 }
 
 // 暂时只支持@Deco({  })
@@ -168,7 +146,6 @@ export function updateDecoratorArrayArgs(
 
   const correspondingDecorator = decoratorSyntaxList
     .getChildren()
-    // .map(x => x.getKindName());
     .filter(child => {
       if (child.getKind() !== SyntaxKind.Decorator) {
         return false;
@@ -183,52 +160,59 @@ export function updateDecoratorArrayArgs(
     })[0]
     .asKind(SyntaxKind.Decorator);
 
-  // FIXME: length
+  const decoratorArg = correspondingDecorator
+    .getArguments()[0]
+    .asKind(SyntaxKind.ObjectLiteralExpression);
 
-  // console.log(correspondingDecorator.getText());
-
-  // TODO: 查看是否已经有imports importConfigs
-
-  // 对于数组：push
-  // TODO: 对于对象：merge
-  // TODO: 对于原始值：replace
-
-  const currentArgObjectKeys = correspondingDecorator.getArguments().map(x => {
-    const propAssignments = x
-      .getFirstChildByKind(SyntaxKind.SyntaxList)
-      .getChildren()
-      .filter(x => x.getKind() === SyntaxKind.PropertyAssignment);
-
-    const propKeys = propAssignments.map(assign =>
-      assign.getFirstChildByKind(SyntaxKind.Identifier).getText()
-    );
-
-    const propPairs = propAssignments.map(assign => ({
-      key: assign.getFirstChildByKind(SyntaxKind.Identifier).getText(),
-      value: assign.getLastChild().getText(),
-    }));
-  });
-
-  const configObjNode = correspondingDecorator.getArguments()[0];
-
-  const propAssignments = configObjNode
+  const currentArgObjectKeys = decoratorArg
     .getFirstChildByKind(SyntaxKind.SyntaxList)
     .getChildrenOfKind(SyntaxKind.PropertyAssignment)
-    .filter(
-      assign =>
-        assign.getChildrenOfKind(SyntaxKind.Identifier)[0].getText() === argKey
-    )
-    .filter(Boolean)[0];
+    .map(assign => assign.getFirstChildByKind(SyntaxKind.Identifier).getText());
 
-  const existPropValue = propAssignments
-    // [ SyntaxList ]
-    .getFirstChildByKind(SyntaxKind.ArrayLiteralExpression)
-    //
-    .getFirstChildByKind(SyntaxKind.SyntaxList);
+  if (currentArgObjectKeys.includes(argKey)) {
+    // 参数已存在 合并
+    // imports: [orm]
+    // add args by addChildText
+    const propAssignments = decoratorArg
+      .getFirstChildByKind(SyntaxKind.SyntaxList)
+      .getChildrenOfKind(SyntaxKind.PropertyAssignment)
+      .find(
+        assign =>
+          assign.getChildrenOfKind(SyntaxKind.Identifier)[0].getText() ===
+          argKey
+      );
 
-  existPropValue.getText()
-    ? existPropValue.addChildText(`, ${identifier}`)
-    : existPropValue.addChildText(identifier);
+    // orm
+    const existPropAssignedValue = propAssignments
+      .getFirstChildByKindOrThrow(SyntaxKind.ArrayLiteralExpression)
+      .getFirstChildByKind(SyntaxKind.SyntaxList);
+
+    existPropAssignedValue.getText()
+      ? existPropAssignedValue.addChildText(`, ${identifier}`)
+      : existPropAssignedValue.addChildText(identifier);
+
+    // const existPropAssign = decoratorArg
+    //   .getProperty(argKey)
+    //   .getFirstChildByKind(SyntaxKind.ArrayLiteralExpression)
+    //   .getFirstChildByKind(SyntaxKind.SyntaxList);
+
+    // const existPropAssignValue = existPropAssign.getFirstChildByKind(
+    //   SyntaxKind.Identifier
+    // );
+
+    // const val: string[] = [];
+
+    // if (!existPropAssignValue) {
+    //   val.push(identifier);
+    // } else {
+    //   val.push(String(existPropAssignValue.getText()), `, ${identifier}`);
+    // }
+  } else {
+    decoratorArg.insertPropertyAssignment(0, {
+      name: argKey,
+      initializer: `[${identifier}]`,
+    });
+  }
 
   source.saveSync();
 }
@@ -444,10 +428,3 @@ export function addClassPropertyWithMidwayDecorator(
 
   source.saveSync();
 }
-
-export function updateFunctionBody() {}
-
-export function updateFunctionArgs() {}
-
-// move to util
-export function addConsoleStatement() {}
