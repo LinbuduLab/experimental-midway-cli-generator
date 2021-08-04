@@ -24,8 +24,8 @@ import {
   ensureLifeCycleMethods,
   getLifeCycleClassMethods,
   addPlainClassMethods,
-  addClassProperty,
-  addClassPropertyWithMidwayDecorator,
+  ensureClassProperty,
+  ensureClassPropertyWithMidwayDecorator,
   ensureLifeCycleMethodArguments,
   getExistClassMethodsDeclaration,
 } from './configuration';
@@ -48,4 +48,6 @@ const configurationSource = project.addSourceFileAtPath(
 // );
 // updateDecoratorArrayArgs(configurationSource, 'Configuration', 'imports', 'x');
 
-ensureLifeCycleMethodArguments(configurationSource, ['onReady', 'onStop']);
+// ensureLifeCycleMethodArguments(configurationSource, ['onReady', 'onStop']);
+
+// ensureClassPropertyWithMidwayDecorator(configurationSource, 'app', 'App');

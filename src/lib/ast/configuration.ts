@@ -262,15 +262,18 @@ type LifeCycleMethod = 'onReady' | 'onStop';
 
 const LIFE_CYCLE_METHODS: LifeCycleMethod[] = ['onReady', 'onStop'];
 
-export function getLifeCycleClass(source: SourceFile) {
+export function getClassByName(source: SourceFile, className: string) {
   return source
     .getFirstChildByKind(SyntaxKind.SyntaxList)
     .getChildrenOfKind(SyntaxKind.ClassDeclaration)
     .find(
       cls =>
-        cls.getFirstChildByKind(SyntaxKind.Identifier).getText() ===
-        'ContainerConfiguration'
+        cls.getFirstChildByKind(SyntaxKind.Identifier).getText() === className
     );
+}
+
+export function getLifeCycleClass(source: SourceFile) {
+  return getClassByName(source, 'ContainerConfiguration');
 }
 
 // 确保容器配置类拥有方法
@@ -402,25 +405,22 @@ export function ensureLifeCycleMethodArguments(
   apply && source.saveSync();
 }
 
-export function addClassProperty(
+//
+export function ensureClassProperty(
   source: SourceFile,
   className: string,
   propKey: string,
-  decorators?: string[],
-  propType?: string
+  decorators: string[] = [],
+  propType = 'unknown',
+  apply = true
 ) {
   const existClassProps = getExistClassProps(source, className);
 
   if (existClassProps.includes(propKey)) {
     return;
   }
-  const classDec = source
-    .getFirstChildByKind(SyntaxKind.SyntaxList)
-    .getFirstChildByKind(SyntaxKind.ClassDeclaration);
 
-  if (!classDec) {
-    return;
-  }
+  const targetClass = getClassByName(source, 'ContainerConfiguration');
 
   const applyDecorators: Array<DecoratorStructure> = decorators.map(
     decorator => ({
@@ -430,23 +430,24 @@ export function addClassProperty(
     })
   );
 
-  classDec.addProperty({
+  targetClass.addProperty({
     name: propKey,
     decorators: applyDecorators,
     type: propType,
   });
 
-  // FIXME: empty line
+  // FIXME: 生成到所有方法声明前
 
-  source.saveSync();
+  apply && source.saveSync();
 }
 
-type MidwayPropDecorators = 'Inject' | 'App';
+type MidwayPropDecorator = 'Inject' | 'App';
 
-export function addClassPropertyWithMidwayDecorator(
+export function ensureClassPropertyWithMidwayDecorator(
   source: SourceFile,
   propKey: string,
-  decorators: MidwayPropDecorators
+  decorators: MidwayPropDecorator = 'Inject',
+  apply = true
 ) {
   const propType = decorators === 'App' ? 'IMidwayApplication' : 'unknown';
 
@@ -456,7 +457,7 @@ export function addClassPropertyWithMidwayDecorator(
 
   addNamedImportsMember(source, '@midwayjs/decorator', [decorators]);
 
-  addClassProperty(
+  ensureClassProperty(
     source,
     'ContainerConfiguration',
     propKey,
@@ -464,5 +465,5 @@ export function addClassPropertyWithMidwayDecorator(
     propType
   );
 
-  source.saveSync();
+  apply && source.saveSync();
 }
