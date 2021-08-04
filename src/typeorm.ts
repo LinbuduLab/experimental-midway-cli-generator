@@ -1,15 +1,28 @@
 import { CAC } from 'cac';
 import * as path from 'path';
 import * as fs from 'fs-extra';
+import { Project } from 'ts-morph';
 import { compile as EJSCompile } from 'ejs';
 
 import * as prettier from 'prettier';
-import { ensureBooleanType, inputPromptStringValue } from './lib/helper';
+import {
+  ensureBooleanType,
+  inputPromptStringValue,
+  formatTSFile,
+} from './lib/helper';
 import { names, updateGitIgnore } from './lib/helper';
 import consola from 'consola';
 import chalk from 'chalk';
 import findUp from 'find-up';
 import { capitalCase } from './lib/case/capital-case';
+import { checkDepExist, installDep } from './lib/deps';
+import { addConfigExport } from './lib/ast/config';
+import { addImportDeclaration, ImportType } from './lib/ast/import';
+import { updateDecoratorArrayArgs } from './lib/ast/configuration';
+
+// setup：
+// 检查是否安装
+// 没有
 
 // mw g component orm setup/entity
 // mw g component tgql --interactive
@@ -121,14 +134,56 @@ export const useTypeORMGenerator = (cli: CAC) => {
       let finalFilePath: string;
       let finalFileContent: string;
 
-      const nameNames = names(name);
-      const fileNameNames = names(options.fileName ?? name);
+      const nameNames = names(name ?? '');
+      const fileNameNames = names(options.fileName ?? name ?? '');
 
       switch (type.toLocaleUpperCase()) {
         case TypeORMGenerator.SETUP:
-          if (name) {
-            console.log('ignored extra args in setup generator');
-          }
+          // if (!checkDepExist('@midwayjs/orm')) {
+          //   installDep('@midwayjs/orm');
+          // }
+
+          const projectDirPath = process.env.GEN_LOCAL
+            ? path.resolve(__dirname, '../project')
+            : process.cwd();
+
+          const project = new Project();
+
+          const configPath = path.resolve(
+            projectDirPath,
+            './src/config/config.default.ts'
+          );
+
+          const configSource = project.addSourceFileAtPath(configPath);
+
+          const configurationPath = path.resolve(
+            projectDirPath,
+            './src/configuration.ts'
+          );
+
+          // 新增export const orm = {}
+          addConfigExport(configSource, 'orm', { type: 'sqlite' });
+
+          formatTSFile(configPath);
+
+          const configurationSource =
+            project.addSourceFileAtPath(configurationPath);
+
+          addImportDeclaration(
+            configurationSource,
+            'orm',
+            '@midwayjs/orm',
+            ImportType.NAMESPACE_IMPORT
+          );
+
+          updateDecoratorArrayArgs(
+            configurationSource,
+            'Configuration',
+            'imports',
+            'orm'
+          );
+
+          formatTSFile(configurationPath);
 
           break;
 
@@ -217,8 +272,10 @@ export const useTypeORMGenerator = (cli: CAC) => {
       }
 
       if (!options.dryRun) {
-        fs.ensureFileSync(finalFilePath);
-        fs.writeFileSync(finalFilePath, finalFileContent);
+        if (type.toLocaleUpperCase() !== TypeORMGenerator.SETUP) {
+          fs.ensureFileSync(finalFilePath);
+          fs.writeFileSync(finalFilePath, finalFileContent);
+        }
       } else {
         consola.success('TypeORM generator invoked with:');
         consola.info(`type: ${chalk.cyan(type)}`);

@@ -127,12 +127,12 @@ export function getLifeCycleClassMethods(
 ): LifeCycleMethod[] {
   return getExistClassMethods(
     source,
-    'ContainerConfiguration'
+    'ContainerLifeCycle'
   ) as LifeCycleMethod[];
 }
 
 export function getLifeCycleClassProps(source: SourceFile): string[] {
-  return getExistClassProps(source, 'ContainerConfiguration');
+  return getExistClassProps(source, 'ContainerLifeCycle');
 }
 
 // 暂时只支持@Deco({  })
@@ -211,6 +211,7 @@ export function updateDecoratorArrayArgs(
     //   val.push(String(existPropAssignValue.getText()), `, ${identifier}`);
     // }
   } else {
+    // TODO: support insert at start or end
     decoratorArg.insertPropertyAssignment(0, {
       name: argKey,
       initializer: `[${identifier}]`,
@@ -273,7 +274,7 @@ export function getClassByName(source: SourceFile, className: string) {
 }
 
 export function getLifeCycleClass(source: SourceFile) {
-  return getClassByName(source, 'ContainerConfiguration');
+  return getClassByName(source, 'ContainerLifeCycle');
 }
 
 // 确保容器配置类拥有方法
@@ -342,7 +343,7 @@ export function ensureLifeCycleMethodArguments(
 
   const existMethodDeclarations = getExistClassMethodsDeclaration(
     source,
-    'ContainerConfiguration'
+    'ContainerLifeCycle'
   );
 
   const methodsShouldBeFix: MethodDeclaration[] = [];
@@ -420,7 +421,7 @@ export function ensureClassProperty(
     return;
   }
 
-  const targetClass = getClassByName(source, 'ContainerConfiguration');
+  const targetClass = getClassByName(source, 'ContainerLifeCycle');
 
   const applyDecorators: Array<DecoratorStructure> = decorators.map(
     decorator => ({
@@ -459,7 +460,7 @@ export function ensureClassPropertyWithMidwayDecorator(
 
   ensureClassProperty(
     source,
-    'ContainerConfiguration',
+    'ContainerLifeCycle',
     propKey,
     [decorators],
     propType

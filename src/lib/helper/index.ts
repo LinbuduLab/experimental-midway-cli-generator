@@ -7,9 +7,16 @@ import * as findUp from 'find-up';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as minIndent from 'min-indent';
+import prettier from 'prettier';
 
 import parseJson from 'parse-json';
 import normalizePackageData from 'normalize-package-data';
+
+export function formatTSFile(filePath: string) {
+  const origin = fs.readFileSync(filePath, 'utf-8');
+  const formatted = prettier.format(origin, { parser: 'typescript' });
+  fs.writeFileSync(filePath, formatted);
+}
 
 export function readPackageSync({
   cwd = process.cwd(),

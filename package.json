@@ -6,7 +6,7 @@
   "author": "Linbudu <48507806+linbudu599@users.noreply.github.com>",
   "license": "MIT",
   "scripts": {
-    "dev": "tsnd --respawn --transpile-only  ./src/index.ts",
+    "dev": "cross-env GEN_LOCAL=true tsnd --respawn --transpile-only  ./src/index.ts",
     "ast": "tsnd --respawn --transpile-only ./src/lib/ast/sample.ts",
     "test": "jest",
     "test:watch": "jest --watch"
