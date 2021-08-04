@@ -1,14 +1,6 @@
-import {
-  ArrowFunction,
-  ImportDeclaration,
-  Project,
-  SourceFile,
-  SyntaxKind,
-  VariableDeclarationKind,
-} from 'ts-morph';
-import path from 'path';
+import { ImportDeclaration, SourceFile, SyntaxKind } from 'ts-morph';
+
 import consola from 'consola';
-import strip from 'strip-comments';
 
 export enum ImportType {
   NAMESPACE_IMPORT = 'NAMESPACE_IMPORT',
@@ -168,6 +160,7 @@ export function addNamedImportsMember(
   apply && source.saveSync();
 }
 
+// 更新默认导入的值
 export function updateDefaultImportClause(
   source: SourceFile,
   specifier: string,
@@ -193,6 +186,7 @@ export function updateDefaultImportClause(
   apply && source.saveSync();
 }
 
+// 更新命名空间导入的值
 export function updateNamespaceImportClause(
   source: SourceFile,
   specifier: string,
@@ -218,6 +212,7 @@ export function updateNamespaceImportClause(
   apply && source.saveSync();
 }
 
+// 移除导入声明
 export function removeImportDeclaration(
   source: SourceFile,
   specifiers: string[],
@@ -242,6 +237,7 @@ export function removeImportDeclaration(
   apply && source.saveSync();
 }
 
+// 基于导入类型移除导入
 export function removeImportDeclarationByTypes(
   source: SourceFile,
   removeByTypes?: Partial<Record<'namespace' | 'default' | 'named', boolean>>,
@@ -269,6 +265,7 @@ export function removeImportDeclarationByTypes(
   apply && source.saveSync();
 }
 
+// 更新导入的来源值
 export function updateImportSpecifier(
   source: SourceFile,
   prevSpec: string,
@@ -289,14 +286,17 @@ export function updateImportSpecifier(
   apply && source.saveSync();
 }
 
+// 检查是否是默认导入
 export function isDefaultImport(importSpec: ImportDeclaration): boolean {
   return Boolean(importSpec.getDefaultImport());
 }
 
+// 检查是否是命名空间导入
 export function isNamespaceImport(importSpec: ImportDeclaration): boolean {
   return Boolean(importSpec.getNamespaceImport());
 }
 
+// 检查是否是具名导入
 export function isNamedImport(importSpec: ImportDeclaration): boolean {
   return Boolean(importSpec.getNamedImports().length);
 }

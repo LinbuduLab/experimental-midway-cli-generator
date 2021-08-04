@@ -5,7 +5,7 @@ import prettier from 'prettier';
 import execa from 'execa';
 import consola from 'consola';
 import { readPackageSync } from './lib/helper';
-import { addNPMScripts } from './lib/deps';
+import { addNPMScripts } from './lib/package';
 
 // TODO: modify official generated to use SQLite3
 

@@ -1,18 +1,7 @@
+import { SourceFile } from 'ts-morph';
+
 import {
-  ArrowFunction,
-  Project,
-  SourceFile,
-  SyntaxKind,
-  VariableDeclarationKind,
-  DecoratorStructure,
-  ClassDeclaration,
-  StructureKind,
-} from 'ts-morph';
-import path from 'path';
-import fs from 'fs-extra';
-import strip from 'strip-comments';
-import {
-  addLifeCycleMethods,
+  ensureLifeCycleMethods,
   getExistClassMethodsDeclaration,
 } from './configuration';
 
@@ -32,6 +21,5 @@ export function insertFunctionBodyStatement(
 
 // add to onReady
 export function addPluginUse(source: SourceFile, pluginIdentifier: string) {
-  // FIXME: ensure
-  addLifeCycleMethods(source, ['onReady']);
+  ensureLifeCycleMethods(source, ['onReady']);
 }

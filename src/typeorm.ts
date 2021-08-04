@@ -15,8 +15,8 @@ import consola from 'consola';
 import chalk from 'chalk';
 import findUp from 'find-up';
 import { capitalCase } from './lib/case';
-import { checkDepExist, installDep } from './lib/deps';
-import { addConfigExport } from './lib/ast/config';
+import { checkDepExist, installDep } from './lib/package';
+import { addConstExport } from './lib/ast/config';
 import { addImportDeclaration, ImportType } from './lib/ast/import';
 import { updateDecoratorArrayArgs } from './lib/ast/configuration';
 
@@ -162,7 +162,7 @@ export const useTypeORMGenerator = (cli: CAC) => {
           );
 
           // 新增export const orm = {}
-          addConfigExport(configSource, 'orm', { type: 'sqlite' });
+          addConstExport(configSource, 'orm', { type: 'sqlite' });
 
           formatTSFile(configPath);
 

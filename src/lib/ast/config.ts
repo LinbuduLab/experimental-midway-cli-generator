@@ -1,20 +1,14 @@
 import {
-  ArrowFunction,
   SourceFile,
   SyntaxKind,
   VariableDeclarationKind,
-  ts,
   VariableStatement,
 } from 'ts-morph';
-import path from 'path';
-import fs from 'fs-extra';
-import prettier from 'prettier';
 import strip from 'strip-comments';
-import flatten from 'lodash/flatten';
 import consola from 'consola';
 
-// export const x = {}
-export function addConfigExport(
+// 新增 export const x = {}
+export function addConstExport(
   source: SourceFile,
   key: string,
   value: any,
@@ -59,6 +53,7 @@ export function getExportVariableStatements(
   source: SourceFile
 ): VariableStatement[];
 
+// 获取所有的导出语句（可根据export的identifier查找）
 export function getExportVariableStatements(
   source: SourceFile,
   varIdentifier?: string
@@ -95,6 +90,7 @@ export function getExportVariableStatements(
   return exportVarStatements;
 }
 
+// 获取所有的导出语句的变量值
 export function getExportVariableIdentifiers(source: SourceFile): string[] {
   const exportVarStatements = getExportVariableStatements(source);
   const exportVars = exportVarStatements.map(v =>
@@ -110,8 +106,7 @@ export function getExportVariableIdentifiers(source: SourceFile): string[] {
   return exportVars;
 }
 
-// 只会移除const导出
-export function removeConfigExport(
+export function removeConstExport(
   source: SourceFile,
   identifier?: string,
   apply = true
@@ -132,7 +127,7 @@ export function removeConfigExport(
   apply && source.saveSync();
 }
 
-export function updateConfigExportIdentifier(
+export function updateConstConfigIdentifier(
   source: SourceFile,
   currentKey: string,
   updatedKey: string,
@@ -158,7 +153,7 @@ export function updateConfigExportIdentifier(
   const targetVarTextValue = targetVarValueNode.getText();
 
   if (targetVarValueKind === SyntaxKind.NumericLiteral) {
-    addConfigExport(
+    addConstExport(
       source,
       updatedKey,
       Number(targetVarTextValue),
@@ -167,7 +162,7 @@ export function updateConfigExportIdentifier(
     );
     targetVar.remove();
   } else if (targetVarValueKind === SyntaxKind.StringLiteral) {
-    addConfigExport(
+    addConstExport(
       source,
       updatedKey,
       String(targetVarTextValue).replaceAll("'", ''),
@@ -180,7 +175,7 @@ export function updateConfigExportIdentifier(
       targetVarValueKind
     )
   ) {
-    addConfigExport(
+    addConstExport(
       source,
       updatedKey,
       targetVarTextValue !== 'false',
@@ -189,24 +184,25 @@ export function updateConfigExportIdentifier(
     );
     targetVar.remove();
   } else if (targetVarValueKind === SyntaxKind.ArrowFunction) {
-    addConfigExport(source, updatedKey, targetVarTextValue, false, false);
+    addConstExport(source, updatedKey, targetVarTextValue, false, false);
     targetVar.remove();
   } else if (targetVarValueKind === SyntaxKind.ObjectLiteralExpression) {
-    addConfigExport(source, updatedKey, targetVarTextValue, false, false);
+    addConstExport(source, updatedKey, targetVarTextValue, false, false);
     targetVar.remove();
   }
 
   apply && source.saveSync();
 }
 
-// export const x:xxx = {}
-export function addTypeRefToExistExportConst(
+// 新增类型定义 export const x:xxx = {}
+export function addConstExportTypeRef(
   source: SourceFile,
   exportVar: string,
   typeRef: string
 ) {}
 
-export function addTypeAssertionToExistExportConst() {}
+// 新增类型断言
+export function addConstExportTypeAssertion() {}
 
 // config.x = {}
 // 仅适用于默认导出方法形式

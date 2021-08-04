@@ -1,18 +1,12 @@
 import {
-  ArrowFunction,
-  Project,
   SourceFile,
   SyntaxKind,
-  VariableDeclarationKind,
   DecoratorStructure,
-  ClassDeclaration,
   StructureKind,
   MethodDeclaration,
   PropertyDeclaration,
 } from 'ts-morph';
-import path from 'path';
-import fs from 'fs-extra';
-import strip from 'strip-comments';
+
 import { addNamedImportsMember } from './import';
 import consola from 'consola';
 
@@ -32,7 +26,7 @@ export function getExistClassMethodsDeclaration(
   methodName: string
 ): MethodDeclaration;
 
-// 获得类的方法声明
+// 获得类的方法声明，可根据方法名查找
 export function getExistClassMethodsDeclaration(
   source: SourceFile,
   className: string,
@@ -65,7 +59,7 @@ export function getExistClassMethodsDeclaration(
   }
 }
 
-// 获取类的方法名称
+// 获取类的所有方法名称
 export function getExistClassMethods(source: SourceFile, className: string) {
   return getExistClassMethodsDeclaration(source, className).map(m =>
     m.getName()
@@ -83,7 +77,7 @@ export function getExistClassPropDeclarations(
   propName: string
 ): PropertyDeclaration[];
 
-// 获取类的属性声明
+// 获取类的属性声明，可根据属性名查找
 export function getExistClassPropDeclarations(
   source: SourceFile,
   className: string,
@@ -116,7 +110,7 @@ export function getExistClassPropDeclarations(
   }
 }
 
-// 获取类的属性名称
+// 获取类的属性名
 export function getExistClassProps(source: SourceFile, className: string) {
   return getExistClassPropDeclarations(source, className).map(m => m.getName());
 }
@@ -131,10 +125,12 @@ export function getLifeCycleClassMethods(
   ) as LifeCycleMethod[];
 }
 
+// 获取生命周期类已有的属性
 export function getLifeCycleClassProps(source: SourceFile): string[] {
   return getExistClassProps(source, 'ContainerLifeCycle');
 }
 
+// 更新数组类型的装饰器参数
 // 暂时只支持@Deco({  })
 export function updateDecoratorArrayArgs(
   source: SourceFile,
@@ -221,9 +217,15 @@ export function updateDecoratorArrayArgs(
   source.saveSync();
 }
 
-// 暂时只支持为 onReady onStop 添加return type
-// container: IMidwayContainer, app?: IMidwayApplication
-// addAsync?
+// 更新原始类型的装饰器参数
+export function updateDecoratorPrimitiveArgs(
+  source: SourceFile,
+  decoratorName: string,
+  argKey: string,
+  identifier: string | number | boolean
+) {}
+
+// 为类新增方法
 export function addPlainClassMethods(
   source: SourceFile,
   className: string,
@@ -263,6 +265,7 @@ type LifeCycleMethod = 'onReady' | 'onStop';
 
 const LIFE_CYCLE_METHODS: LifeCycleMethod[] = ['onReady', 'onStop'];
 
+// 基于类名获取类的定义
 export function getClassByName(source: SourceFile, className: string) {
   return source
     .getFirstChildByKind(SyntaxKind.SyntaxList)
@@ -273,6 +276,7 @@ export function getClassByName(source: SourceFile, className: string) {
     );
 }
 
+// 获取生命周期类
 export function getLifeCycleClass(source: SourceFile) {
   return getClassByName(source, 'ContainerLifeCycle');
 }
@@ -334,6 +338,7 @@ export function ensureLifeCycleMethods(
   apply && source.saveSync();
 }
 
+// 确保容器配置类的方法具有标准参数
 export function ensureLifeCycleMethodArguments(
   source: SourceFile,
   methods: LifeCycleMethod[],
@@ -406,6 +411,7 @@ export function ensureLifeCycleMethodArguments(
   apply && source.saveSync();
 }
 
+// 确保容器配置类拥有属性
 export function ensureClassProperty(
   source: SourceFile,
   className: string,
@@ -443,6 +449,7 @@ export function ensureClassProperty(
 
 type MidwayPropDecorator = 'Inject' | 'App';
 
+// 确保容器配置类拥有属性，且拥有Midway装饰器
 export function ensureClassPropertyWithMidwayDecorator(
   source: SourceFile,
   propKey: string,
