@@ -28,6 +28,7 @@ import {
   addClassProperty,
   addClassPropertyWithMidwayDecorator,
   ensureLifeCycleMethodArguments,
+  getExistClassMethodsDeclaration,
 } from './configuration';
 import { insertFunctionBodyStatement } from './plugin';
 
@@ -41,6 +42,8 @@ const configurationSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/midway-configuration.ts')
 );
 
-addConfigExport(configSource, 'orm', {
-  type: 'sqlite',
-});
+getExistClassMethodsDeclaration(configurationSource, 'ContainerConfiguration');
+
+console.log(
+  getExistClassMethods(configurationSource, 'ContainerConfiguration')
+);

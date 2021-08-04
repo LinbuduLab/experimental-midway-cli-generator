@@ -8,6 +8,7 @@ import {
   ClassDeclaration,
   StructureKind,
   MethodDeclaration,
+  PropertyDeclaration,
 } from 'ts-morph';
 import path from 'path';
 import fs from 'fs-extra';
@@ -19,33 +20,6 @@ import { addNamedImportsMember } from './import';
 // add this.app.use to onReady
 // add console.log to onReady
 
-// TODO: get methods / get methods declarations
-
-// FIXME:
-export function getExistClassMethods(source: SourceFile, className: string) {
-  const classDeclarations = source
-    .getFirstChildByKind(SyntaxKind.SyntaxList)
-    .getChildrenOfKind(SyntaxKind.ClassDeclaration);
-
-  const correspondingClass = classDeclarations.filter(
-    classDecs =>
-      classDecs.getFirstChildByKind(SyntaxKind.Identifier).getText() ===
-      className
-  );
-
-  if (!correspondingClass.length) {
-    return;
-  }
-
-  const correspondingClassItem = correspondingClass[0];
-
-  const methods = correspondingClassItem
-    .getMethods()
-    .map(m => m.getFirstChildByKind(SyntaxKind.Identifier).getText());
-
-  return methods;
-}
-
 export function getExistClassMethodsDeclaration(
   source: SourceFile,
   className: string
@@ -54,9 +28,10 @@ export function getExistClassMethodsDeclaration(
 export function getExistClassMethodsDeclaration(
   source: SourceFile,
   className: string,
-  methodName?: string
+  methodName: string
 ): MethodDeclaration;
 
+// 获得类的方法声明
 export function getExistClassMethodsDeclaration(
   source: SourceFile,
   className: string,
@@ -66,20 +41,19 @@ export function getExistClassMethodsDeclaration(
     .getFirstChildByKind(SyntaxKind.SyntaxList)
     .getChildrenOfKind(SyntaxKind.ClassDeclaration);
 
-  const correspondingClass = classDeclarations.filter(
+  const targetClass = classDeclarations.filter(
     classDecs =>
       classDecs.getFirstChildByKind(SyntaxKind.Identifier).getText() ===
       className
   );
 
-  if (!correspondingClass.length) {
+  if (!targetClass.length) {
     return;
   }
 
-  const correspondingClassItem = correspondingClass[0];
+  const targetClassItem = targetClass[0];
 
-  const methods = correspondingClassItem.getMethods();
-  // .map(m => m.getFirstChildByKind(SyntaxKind.Identifier).getText());
+  const methods = targetClassItem.getMethods();
 
   if (methodName) {
     return methods.filter(
@@ -90,28 +64,62 @@ export function getExistClassMethodsDeclaration(
   }
 }
 
-export function getExistClassProps(source: SourceFile, className: string) {
+// 获取类的方法名称
+export function getExistClassMethods(source: SourceFile, className: string) {
+  return getExistClassMethodsDeclaration(source, className).map(m =>
+    m.getFirstChildByKind(SyntaxKind.Identifier).getText()
+  );
+}
+
+export function getExistClassPropDeclarations(
+  source: SourceFile,
+  className: string
+): PropertyDeclaration[];
+
+export function getExistClassPropDeclarations(
+  source: SourceFile,
+  className: string,
+  propName: string
+): PropertyDeclaration[];
+
+// 获取类的属性声明
+export function getExistClassPropDeclarations(
+  source: SourceFile,
+  className: string,
+  propName?: string
+): PropertyDeclaration | PropertyDeclaration[] {
   const classDeclarations = source
     .getFirstChildByKind(SyntaxKind.SyntaxList)
     .getChildrenOfKind(SyntaxKind.ClassDeclaration);
 
-  const correspondingClass = classDeclarations.filter(
+  const targetClass = classDeclarations.filter(
     classDecs =>
       classDecs.getFirstChildByKind(SyntaxKind.Identifier).getText() ===
       className
   );
 
-  if (!correspondingClass.length) {
+  if (!targetClass.length) {
     return;
   }
 
-  const correspondingClassItem = correspondingClass[0];
+  const targetClassItem = targetClass[0];
 
-  const props = correspondingClassItem
-    .getProperties()
-    .map(m => m.getFirstChildByKind(SyntaxKind.Identifier).getText());
+  const props = targetClassItem.getProperties();
 
-  return props;
+  if (propName) {
+    return props.filter(
+      m => m.getFirstChildByKind(SyntaxKind.Identifier).getText() === propName
+    )[0];
+  } else {
+    return props;
+  }
+}
+
+// 获取类的属性名称
+export function getExistClassProps(source: SourceFile, className: string) {
+  return getExistClassPropDeclarations(source, className).map(m =>
+    m.getFirstChildByKind(SyntaxKind.Identifier).getText()
+  );
 }
 
 export function getLifeCycleClassMethods(
