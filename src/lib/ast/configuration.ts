@@ -14,10 +14,10 @@ import {
   getExistClassProps,
   getExistClassMethodsDeclaration,
   getClassDecByName,
-  ensureClassProperty,
 } from './class';
 import {
   LifeCycleMethod,
+  LIFE_CYCLE_CLASS_IDENTIFIER,
   LIFE_CYCLE_METHODS,
   MidwayPropDecorator,
 } from './utils';
@@ -28,18 +28,18 @@ export function getLifeCycleClassMethods(
 ): LifeCycleMethod[] {
   return getExistClassMethods(
     source,
-    'ContainerLifeCycle'
+    LIFE_CYCLE_CLASS_IDENTIFIER
   ) as LifeCycleMethod[];
 }
 
 // 获取生命周期类已有的属性
 export function getLifeCycleClassProps(source: SourceFile): string[] {
-  return getExistClassProps(source, 'ContainerLifeCycle');
+  return getExistClassProps(source, LIFE_CYCLE_CLASS_IDENTIFIER);
 }
 
 // 获取生命周期类
 export function getLifeCycleClass(source: SourceFile) {
-  return getClassDecByName(source, 'ContainerLifeCycle');
+  return getClassDecByName(source, LIFE_CYCLE_CLASS_IDENTIFIER);
 }
 
 // 确保容器配置类拥有方法
@@ -109,7 +109,7 @@ export function ensureLifeCycleMethodArguments(
 
   const existMethodDeclarations = getExistClassMethodsDeclaration(
     source,
-    'ContainerLifeCycle'
+    LIFE_CYCLE_CLASS_IDENTIFIER
   );
 
   const methodsShouldBeFix: MethodDeclaration[] = [];
@@ -173,7 +173,7 @@ export function ensureLifeCycleMethodArguments(
 }
 
 // 确保容器配置类拥有属性，且拥有Midway装饰器
-export function ensureClassPropertyWithMidwayDecorator(
+export function ensureLifeCycleClassPropertyWithMidwayDecorator(
   source: SourceFile,
   propKey: string,
   decorators: MidwayPropDecorator = 'Inject',
@@ -185,15 +185,52 @@ export function ensureClassPropertyWithMidwayDecorator(
     addNamedImportsMember(source, '@midwayjs/core', ['IMidwayApplication']);
   }
 
-  addNamedImportsMember(source, '@midwayjs/decorator', [decorators]);
+  decorators.length &&
+    addNamedImportsMember(source, '@midwayjs/decorator', [decorators]);
 
-  ensureClassProperty(
+  ensureLifeCycleClassProperty(
     source,
-    'ContainerLifeCycle',
+    LIFE_CYCLE_CLASS_IDENTIFIER,
     propKey,
     [decorators],
     propType
   );
+
+  apply && source.saveSync();
+}
+
+// 确保类拥有属性
+export function ensureLifeCycleClassProperty(
+  source: SourceFile,
+  className: string,
+  propKey: string,
+  decorators: string[] = [],
+  propType = 'unknown',
+  apply = true
+) {
+  const existClassProps = getExistClassProps(source, className);
+
+  if (existClassProps.includes(propKey)) {
+    return;
+  }
+
+  const targetClass = getClassDecByName(source, 'ContainerLifeCycle');
+
+  const applyDecorators: Array<DecoratorStructure> = decorators.map(
+    decorator => ({
+      name: decorator,
+      kind: StructureKind.Decorator,
+      arguments: [],
+    })
+  );
+
+  targetClass.addProperty({
+    name: propKey,
+    decorators: applyDecorators,
+    type: propType,
+  });
+
+  // FIXME: 生成到所有方法声明前
 
   apply && source.saveSync();
 }

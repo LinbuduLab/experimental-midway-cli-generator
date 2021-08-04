@@ -111,7 +111,8 @@ export function getExistClassProps(source: SourceFile, className: string) {
 export function addPlainClassMethods(
   source: SourceFile,
   className: string,
-  methods: string[]
+  methods: string[],
+  apply = true
 ) {
   const existClassMethods: string[] = getExistClassMethods(source, className);
   const methodsCanBeAdded = methods.filter(
@@ -140,7 +141,7 @@ export function addPlainClassMethods(
     });
   });
 
-  source.saveSync();
+  apply && source.saveSync();
 }
 
 // 基于类名获取类的定义
@@ -152,40 +153,4 @@ export function getClassDecByName(source: SourceFile, className: string) {
       cls =>
         cls.getFirstChildByKind(SyntaxKind.Identifier).getText() === className
     );
-}
-
-// 确保类拥有属性
-export function ensureClassProperty(
-  source: SourceFile,
-  className: string,
-  propKey: string,
-  decorators: string[] = [],
-  propType = 'unknown',
-  apply = true
-) {
-  const existClassProps = getExistClassProps(source, className);
-
-  if (existClassProps.includes(propKey)) {
-    return;
-  }
-
-  const targetClass = getClassDecByName(source, 'ContainerLifeCycle');
-
-  const applyDecorators: Array<DecoratorStructure> = decorators.map(
-    decorator => ({
-      name: decorator,
-      kind: StructureKind.Decorator,
-      arguments: [],
-    })
-  );
-
-  targetClass.addProperty({
-    name: propKey,
-    decorators: applyDecorators,
-    type: propType,
-  });
-
-  // FIXME: 生成到所有方法声明前
-
-  apply && source.saveSync();
 }

@@ -5,7 +5,8 @@ import { ensureLifeCycleMethods } from './configuration';
 export function insertFunctionBodyStatement(
   source: SourceFile,
   functionIdentifier: string,
-  statements: string[]
+  statements: string[],
+  apply = true
 ) {
   const method = getExistClassMethodsDeclaration(
     source,

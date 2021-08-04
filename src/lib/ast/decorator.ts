@@ -13,7 +13,8 @@ export function updateDecoratorArrayArgs(
   source: SourceFile,
   decoratorName: string,
   argKey: string,
-  identifier: string
+  identifier: string,
+  apply = true
 ) {
   const decoratorSyntaxList = source
     .getFirstChildByKind(SyntaxKind.SyntaxList)
@@ -91,5 +92,5 @@ export function updateDecoratorArrayArgs(
     });
   }
 
-  source.saveSync();
+  apply && source.saveSync();
 }

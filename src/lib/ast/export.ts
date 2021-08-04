@@ -198,8 +198,50 @@ export function updateConstExportIdentifier(
 export function addConstExportTypeRef(
   source: SourceFile,
   exportVar: string,
-  typeRef: string
-) {}
+  typeRef: string = 'unknown',
+  infer = true,
+  apply = true
+) {
+  const targetExport = getExportVariableStatements(source, exportVar);
+
+  const varDec = targetExport
+    .getFirstChildByKind(SyntaxKind.VariableDeclarationList)
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getFirstChildByKind(SyntaxKind.VariableDeclaration);
+
+  if (
+    varDec.getChildren().length > 3 &&
+    varDec
+      .getChildren()
+      .map(c => c.getKind())
+      .includes(SyntaxKind.ColonToken)
+  ) {
+    consola.error(`Variable ${exportVar} has type reference yet.`);
+    process.exit(0);
+  }
+
+  const varValueLiteral = varDec.getLastChild();
+
+  const varValueKind = varValueLiteral.getKind();
+
+  const typeRefToApply = infer
+    ? varValueKind === SyntaxKind.StringLiteral
+      ? 'string'
+      : varValueKind === SyntaxKind.NumericLiteral
+      ? 'number'
+      : [SyntaxKind.TrueKeyword, SyntaxKind.FalseKeyword].includes(varValueKind)
+      ? 'boolean'
+      : varValueKind === SyntaxKind.ObjectLiteralExpression
+      ? 'Record<string, unknown>'
+      : varValueKind === SyntaxKind.ArrowFunction
+      ? '(...args: unknown) => unknown'
+      : 'unknown'
+    : typeRef;
+
+  varDec.setType(typeRefToApply).getText();
+
+  apply && source.saveSync();
+}
 
 // 新增类型断言
 export function addConstExportTypeAssertion() {}

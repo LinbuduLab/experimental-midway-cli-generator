@@ -4,36 +4,9 @@ import {
   SyntaxKind,
   VariableDeclarationKind,
 } from 'ts-morph';
+import { addConstExportTypeRef } from './export';
 import * as path from 'path';
 import * as strip from 'strip-comments';
-
-import {
-  addImportDeclaration,
-  ImportType,
-  findImportsDeclaration,
-  findImportsSpecifier,
-  updateDefaultImportClause,
-  updateNamespaceImportClause,
-  removeImportDeclaration,
-  removeImportDeclarationByTypes,
-} from './import';
-import {
-  addConfigKey,
-  addConstExport,
-  updateConstConfigIdentifier,
-} from './config';
-import {
-  getExistClassMethods,
-  updateDecoratorArrayArgs,
-  ensureLifeCycleMethods,
-  getLifeCycleClassMethods,
-  addPlainClassMethods,
-  ensureClassProperty,
-  ensureClassPropertyWithMidwayDecorator,
-  ensureLifeCycleMethodArguments,
-  getExistClassMethodsDeclaration,
-} from './configuration';
-import { insertFunctionBodyStatement } from './plugin';
 
 const project = new Project();
 
@@ -41,19 +14,8 @@ const configSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/config-origin/config.default.ts')
 );
 
-const configurationSource = project.addSourceFileAtPath(
-  path.resolve(__dirname, '../../base/midway-configuration.ts')
-);
-
-updateConstConfigIdentifier(configSource, 'x', 'orm1');
-
-// getExistClassMethodsDeclaration(configurationSource, 'ContainerConfiguration');
-
-// console.log(
-//   getExistClassMethods(configurationSource, 'ContainerConfiguration')
+// const configurationSource = project.addSourceFileAtPath(
+//   path.resolve(__dirname, '../../base/midway-configuration.ts')
 // );
-// updateDecoratorArrayArgs(configurationSource, 'Configuration', 'imports', 'x');
 
-// ensureLifeCycleMethodArguments(configurationSource, ['onReady', 'onStop']);
-
-// ensureClassPropertyWithMidwayDecorator(configurationSource, 'app', 'App');
+// addConstExportTypeRef(configSource, 'x', 'string');
