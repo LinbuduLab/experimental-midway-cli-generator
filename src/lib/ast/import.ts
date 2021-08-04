@@ -217,3 +217,66 @@ export function updateNamespaceImportClause(
 
   apply && source.saveSync();
 }
+
+export function removeImportDeclaration(
+  source: SourceFile,
+  specifiers: string[],
+  apply = true
+) {
+  const sourceImports = findImportsSpecifier(source);
+
+  const validSpecToRemove = specifiers.filter(spec =>
+    sourceImports.includes(spec)
+  );
+
+  if (!validSpecToRemove.length) {
+    return;
+  }
+
+  validSpecToRemove.forEach(spec => {
+    const targetImport = findImportsDeclaration(source, spec);
+
+    targetImport.remove();
+  });
+
+  apply && source.saveSync();
+}
+
+export function removeImportDeclarationByTypes(
+  source: SourceFile,
+  removeByTypes?: Partial<Record<'namespace' | 'default' | 'named', boolean>>,
+  apply = true
+) {
+  const sourceImports = findImportsDeclaration(source);
+
+  sourceImports.forEach(imp => {
+    if (removeByTypes?.default && isDefaultImport(imp)) {
+      imp.remove();
+      return;
+    }
+
+    if (removeByTypes?.named && isNamedImport(imp)) {
+      imp.remove();
+      return;
+    }
+
+    if (removeByTypes?.namespace && isNamespaceImport(imp)) {
+      imp.remove();
+      return;
+    }
+  });
+
+  apply && source.saveSync();
+}
+
+export function isDefaultImport(importSpec: ImportDeclaration): boolean {
+  return Boolean(importSpec.getDefaultImport());
+}
+
+export function isNamespaceImport(importSpec: ImportDeclaration): boolean {
+  return Boolean(importSpec.getNamespaceImport());
+}
+
+export function isNamedImport(importSpec: ImportDeclaration): boolean {
+  return Boolean(importSpec.getNamedImports().length);
+}

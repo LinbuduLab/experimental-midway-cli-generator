@@ -14,6 +14,8 @@ import {
   findImportsSpecifier,
   updateDefaultImportClause,
   updateNamespaceImportClause,
+  removeImportDeclaration,
+  removeImportDeclarationByTypes,
 } from './import';
 import { addConfigKey } from './config';
 import {
@@ -39,4 +41,16 @@ const configurationSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/midway-configuration.ts')
 );
 
-updateNamespaceImportClause(configurationSource, '@midwayjs/orm', 'orm1');
+// updateNamespaceImportClause(configurationSource, '@midwayjs/orm', 'pathn1');
+
+// removeImportDeclaration(configurationSource, [
+//   'path',
+//   '@midwayjs/decorator',
+//   '@midwayjs/orm',
+// ]);
+
+removeImportDeclarationByTypes(configurationSource, {
+  default: true,
+  named: true,
+  namespace: true,
+});
