@@ -21,7 +21,7 @@ import { addConfigKey, addConfigExport } from './config';
 import {
   getExistClassMethods,
   updateDecoratorArrayArgs,
-  addLifeCycleMethods,
+  ensureLifeCycleMethods,
   getLifeCycleClassMethods,
   addPlainClassMethods,
   addClassProperty,
@@ -46,4 +46,6 @@ const configurationSource = project.addSourceFileAtPath(
 // console.log(
 //   getExistClassMethods(configurationSource, 'ContainerConfiguration')
 // );
-updateDecoratorArrayArgs(configurationSource, 'Configuration', 'imports', 'x');
+// updateDecoratorArrayArgs(configurationSource, 'Configuration', 'imports', 'x');
+
+ensureLifeCycleMethodArguments(configurationSource, ['onReady', 'onStop']);

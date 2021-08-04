@@ -14,6 +14,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import strip from 'strip-comments';
 import { addNamedImportsMember } from './import';
+import consola from 'consola';
 
 // update @Configuration
 // add onReady / onStop
@@ -67,7 +68,7 @@ export function getExistClassMethodsDeclaration(
 // 获取类的方法名称
 export function getExistClassMethods(source: SourceFile, className: string) {
   return getExistClassMethodsDeclaration(source, className).map(m =>
-    m.getFirstChildByKind(SyntaxKind.Identifier).getText()
+    m.getName()
   );
 }
 
@@ -117,9 +118,7 @@ export function getExistClassPropDeclarations(
 
 // 获取类的属性名称
 export function getExistClassProps(source: SourceFile, className: string) {
-  return getExistClassPropDeclarations(source, className).map(m =>
-    m.getFirstChildByKind(SyntaxKind.Identifier).getText()
-  );
+  return getExistClassPropDeclarations(source, className).map(m => m.getName());
 }
 
 // 获取生命周期类已有的方法
@@ -130,6 +129,10 @@ export function getLifeCycleClassMethods(
     source,
     'ContainerConfiguration'
   ) as LifeCycleMethod[];
+}
+
+export function getLifeCycleClassProps(source: SourceFile): string[] {
+  return getExistClassProps(source, 'ContainerConfiguration');
 }
 
 // 暂时只支持@Deco({  })
@@ -259,9 +262,24 @@ type LifeCycleMethod = 'onReady' | 'onStop';
 
 const LIFE_CYCLE_METHODS: LifeCycleMethod[] = ['onReady', 'onStop'];
 
-export function addLifeCycleMethods(
+export function getLifeCycleClass(source: SourceFile) {
+  return source
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getChildrenOfKind(SyntaxKind.ClassDeclaration)
+    .find(
+      cls =>
+        cls.getFirstChildByKind(SyntaxKind.Identifier).getText() ===
+        'ContainerConfiguration'
+    );
+}
+
+// 确保容器配置类拥有方法
+// 如果已经存在一个，那么只有另一个方法会被传入参数（app  container）
+// 使用ensureLifeCycleMethodArguments来确保所有方法均具有正确参数
+export function ensureLifeCycleMethods(
   source: SourceFile,
-  methods: LifeCycleMethod[]
+  methods: LifeCycleMethod[],
+  apply = true
 ) {
   const existClassMethods: LifeCycleMethod[] = getLifeCycleClassMethods(source);
 
@@ -279,14 +297,11 @@ export function addLifeCycleMethods(
     ]);
   }
 
-  const lifeCycleClass = source
-    .getFirstChildByKind(SyntaxKind.SyntaxList)
-    .getFirstChildByKind(SyntaxKind.ClassDeclaration);
+  const lifeCycleClass = getLifeCycleClass(source);
 
   lifeCycleMethodsCanBeAdded.forEach(m => {
     lifeCycleClass.addMethod({
       name: m,
-      // hasQuestionToken: true,
       isAsync: true,
       parameters: [
         {
@@ -312,19 +327,22 @@ export function addLifeCycleMethods(
     });
   });
 
-  source.saveSync();
+  apply && source.saveSync();
 }
 
 export function ensureLifeCycleMethodArguments(
   source: SourceFile,
-  methods: LifeCycleMethod[]
+  methods: LifeCycleMethod[],
+  apply = true
 ) {
+  ensureLifeCycleMethods(source, methods);
+
   const existMethodDeclarations = getExistClassMethodsDeclaration(
     source,
     'ContainerConfiguration'
   );
 
-  const shouldBeUpdated: MethodDeclaration[] = [];
+  const methodsShouldBeFix: MethodDeclaration[] = [];
 
   existMethodDeclarations.forEach((m, idx) => {
     if (m.getFirstChildByKind(SyntaxKind.SyntaxList).getText() !== 'async') {
@@ -333,35 +351,55 @@ export function ensureLifeCycleMethodArguments(
 
     const argsSyntaxList = m.getChildrenOfKind(SyntaxKind.SyntaxList)[1];
 
-    // 参数为空：直接补全
-    if (!argsSyntaxList) {
+    // 只处理参数为空的方法
+    if (!argsSyntaxList.getText()) {
+      methodsShouldBeFix.push(m);
       return;
     }
 
+    // 存在参数
     const paramSyntaxList = argsSyntaxList.getChildrenOfKind(
       SyntaxKind.Parameter
     );
 
-    // 参数数量不正确 要求用户补全
+    // 参数数量不正确 需要手动补全 因为case太多了
     if (paramSyntaxList.length !== 2) {
+      consola.error(
+        `Incorrect arguments count in ${m.getName()}, expect: 2, found: ${
+          paramSyntaxList.length
+        }`
+      );
       return;
     }
-
-    // argsSyntaxList.forEach(a => {
-    //   if(){}
-    // });
   });
 
-  // const argsNotPreparedMethod = existMethodDeclarations
-  // console.log(
-  //   existMethodDeclarations[0]
-  //     .getChildrenOfKind(SyntaxKind.SyntaxList)[1]
-  //     .getFirstChildByKind(SyntaxKind.Parameter)
-  //     .getChildren()
-  //     .map(x => x.getKindName())
-  // );
+  if (!methodsShouldBeFix.length) {
+    return;
+  }
 
-  // console.log(existMethodDeclarations[0].getText());
+  // 仅修正无参数的方法
+  methodsShouldBeFix.forEach(m => {
+    m.addParameters([
+      {
+        name: 'container',
+        type: 'IMidwayContainer',
+        hasQuestionToken: false,
+        initializer: null,
+        isReadonly: false,
+        isRestParameter: false,
+      },
+      {
+        name: 'app',
+        type: 'IMidwayApplication',
+        hasQuestionToken: true,
+        initializer: null,
+        isReadonly: false,
+        isRestParameter: false,
+      },
+    ]);
+  });
+
+  apply && source.saveSync();
 }
 
 export function addClassProperty(

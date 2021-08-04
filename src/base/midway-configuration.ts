@@ -1,12 +1,16 @@
 import path from 'path';
 import { Configuration, App } from '@midwayjs/decorator';
-import { ILifeCycle } from '@midwayjs/core';
+import {
+  ILifeCycle,
+  IMidwayContainer,
+  IMidwayApplication,
+} from '@midwayjs/core';
 import { IMidwayKoaApplication } from '@midwayjs/koa';
 import { getConnection } from 'typeorm';
 import * as orm from '@midwayjs/orm';
 
 @Configuration({
-  imports: [x ],
+  imports: [],
   importConfigs: ['./config'],
 })
 @Ctx({})
