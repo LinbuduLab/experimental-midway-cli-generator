@@ -10,9 +10,80 @@ import fs from 'fs-extra';
 import prettier from 'prettier';
 import strip from 'strip-comments';
 import flatten from 'lodash/flatten';
+import consola from 'consola';
 
 // export const x = {}
-export function addConfigExport(source: SourceFile, key: string, value: any) {}
+export function addConfigExport(
+  source: SourceFile,
+  key: string,
+  value: any,
+  apply = true
+) {
+  // 又可以抽离成export相关的方法
+  // 拿到所有export const 检查是否已存在
+  // 不允许value是函数
+  // 添加类型提示的方式
+  // const exports
+
+  const topLevelVarStatements = source
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getChildrenOfKind(SyntaxKind.VariableStatement);
+
+  const exportVarDecs = topLevelVarStatements.filter(v => {
+    const syntaxBeforeVarIdentifier = v.getFirstChildIfKind(
+      SyntaxKind.SyntaxList
+    );
+
+    return (
+      syntaxBeforeVarIdentifier &&
+      syntaxBeforeVarIdentifier.getText() &&
+      syntaxBeforeVarIdentifier.getText() === 'export'
+    );
+  });
+  const exportVars = exportVarDecs.map(v =>
+    v
+      .getFirstChildByKind(SyntaxKind.VariableDeclarationList)
+      .getFirstChildByKind(SyntaxKind.SyntaxList)
+      .getFirstChildByKind(SyntaxKind.VariableDeclaration)
+      // [ 'Identifier', 'EqualsToken', 'ObjectLiteralExpression' ]
+      .getFirstChildByKind(SyntaxKind.Identifier)
+      .getText()
+  );
+
+  // console.log('exportVarStatements: ', exportVars);
+
+  // console.log(
+  //   exportVarDecs[0]
+  //     .getFirstChildByKind(SyntaxKind.VariableDeclarationList)
+  //     .getFirstChildByKind(SyntaxKind.SyntaxList)
+  //     .getFirstChildByKind(SyntaxKind.VariableDeclaration)
+  //     .getChildren()
+  //     .map(x => x.getKindName())
+  // );
+
+  if (exportVars.includes(key)) {
+    consola.error(`export ${key} exist!`);
+    return;
+  }
+
+  source
+    .addVariableStatement({
+      declarationKind: VariableDeclarationKind.Const,
+      declarations: [
+        {
+          name: key,
+          initializer: writer => writer.write(JSON.stringify(value)),
+        },
+      ],
+    })
+    .setIsExported(true);
+
+  apply && source.saveSync();
+}
+
+export function addTypeRefToExistExportConst() {}
+
+export function addTypeAssertionToExistExportConst() {}
 
 // config.x = {}
 // 仅适用于默认导出方法形式

@@ -17,7 +17,7 @@ import {
   removeImportDeclaration,
   removeImportDeclarationByTypes,
 } from './import';
-import { addConfigKey } from './config';
+import { addConfigKey, addConfigExport } from './config';
 import {
   tmp,
   getExistClassMethods,
@@ -40,3 +40,7 @@ const configSource = project.addSourceFileAtPath(
 const configurationSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/midway-configuration.ts')
 );
+
+addConfigExport(configSource, 'orm', {
+  type: 'sqlite',
+});
