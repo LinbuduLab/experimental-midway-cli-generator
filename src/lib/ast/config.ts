@@ -110,6 +110,28 @@ export function getExportVariableIdentifiers(source: SourceFile): string[] {
   return exportVars;
 }
 
+// 只会移除const导出
+export function removeConfigExport(
+  source: SourceFile,
+  identifier?: string,
+  apply = true
+) {
+  const exportVars = getExportVariableIdentifiers(source);
+
+  if (identifier && !exportVars.includes(identifier)) {
+    consola.error(`export ${identifier} doesnot exist!`);
+    return;
+  }
+
+  identifier
+    ? getExportVariableStatements(source, identifier).remove()
+    : exportVars.forEach(exp =>
+        getExportVariableStatements(source, exp).remove()
+      );
+
+  apply && source.saveSync();
+}
+
 export function updateConfigExportIdentifier(
   source: SourceFile,
   currentKey: string,

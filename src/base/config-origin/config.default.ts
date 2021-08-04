@@ -22,5 +22,4 @@ export default (appInfo: EggAppInfo) => {
   // };
   return config;
 };
-
-export const x = {};
+export const orm1 = {};
