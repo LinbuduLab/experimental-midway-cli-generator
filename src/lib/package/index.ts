@@ -78,8 +78,7 @@ export const checkDepExist = (dep: string, cwd = process.cwd()) => {
 // deps only
 export const ensureDepsInstalled = async (
   depOrDeps: string | string[],
-  cwd = process.cwd(),
-  asDevDeps = false
+  cwd = process.cwd()
 ) => {
   consola.info(`Checking dependencies...`);
 
@@ -92,6 +91,24 @@ export const ensureDepsInstalled = async (
   );
 
   await installDep(missingDeps, false, cwd);
+};
+
+// devDeps only
+export const ensureDevDepsInstalled = async (
+  depOrDeps: string | string[],
+  cwd = process.cwd()
+) => {
+  consola.info(`Checking devDependencies...`);
+
+  const depsArr = Array.isArray(depOrDeps) ? depOrDeps : [depOrDeps];
+
+  const missingDeps = depsArr.filter(dep => !checkDepExist(dep, cwd));
+
+  consola.info(
+    `Installing missing deps: ${chalk.cyan(missingDeps.join(', '))}...`
+  );
+
+  await installDep(missingDeps, true, cwd);
 };
 
 export const installDep = async (

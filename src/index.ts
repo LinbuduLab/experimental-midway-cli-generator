@@ -11,6 +11,7 @@ import { useTypeGraphQLGenerator } from './type-graphql';
 import { usePrismaGenerator } from './prisma';
 import { useSwaggerGenerator } from './swagger';
 import { useAxiosGenerator } from './axios';
+import { useCacheGenerator } from './cache';
 
 const cli = cac();
 
@@ -27,5 +28,6 @@ useTypeGraphQLGenerator(cli);
 usePrismaGenerator(cli);
 useSwaggerGenerator(cli);
 useAxiosGenerator(cli);
+useCacheGenerator(cli);
 
 cli.parse();

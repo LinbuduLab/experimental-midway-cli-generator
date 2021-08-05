@@ -2,21 +2,23 @@ import { CAC } from 'cac';
 import path from 'path';
 import fs from 'fs-extra';
 import { formatTSFile } from './lib/helper';
+
 import consola from 'consola';
 import { Project } from 'ts-morph';
 import chalk from 'chalk';
-import { ensureDepsInstalled } from './lib/package';
+import { ensureDepsInstalled, ensureDevDepsInstalled } from './lib/package';
 import {
   addImportDeclaration,
   ImportType,
   updateDecoratorArrayArgs,
 } from './lib/ast';
 
-const AXIOS_PKG = '@midwayjs/axios';
+const CACHE_DEP = ['@midwayjs/cache', 'cache-manager'];
+const CACHE_DEV_DEP = ['@types/cache-manager'];
 
-export const useAxiosGenerator = (cli: CAC) => {
+export const useCacheGenerator = (cli: CAC) => {
   cli
-    .command('axios', 'Axioxs related', {
+    .command('cache', 'Cache related', {
       allowUnknownOptions: true,
     })
     .option('--dry-run [dryRun]', 'Dry run to see what is happening')
@@ -34,7 +36,11 @@ export const useAxiosGenerator = (cli: CAC) => {
 
         options.dryRun
           ? consola.info('`[DryRun]` Skip dependencies installation check.')
-          : await ensureDepsInstalled(AXIOS_PKG, projectDirPath);
+          : await ensureDepsInstalled(CACHE_DEP, projectDirPath);
+
+        options.dryRun
+          ? consola.info('`[DryRun]` Skip devDependencies installation check.')
+          : await ensureDevDepsInstalled(CACHE_DEV_DEP, projectDirPath);
 
         if (!options.dryRun) {
           consola.info('Source code will be transformed.');
@@ -59,8 +65,8 @@ export const useAxiosGenerator = (cli: CAC) => {
 
           addImportDeclaration(
             configurationSource,
-            'axios',
-            '@midwayjs/axios',
+            'cache',
+            '@midwayjs/cache',
             ImportType.NAMESPACE_IMPORT
           );
 
@@ -68,7 +74,7 @@ export const useAxiosGenerator = (cli: CAC) => {
             configurationSource,
             'Configuration',
             'imports',
-            'axios'
+            'cache'
           );
 
           formatTSFile(configurationPath);
