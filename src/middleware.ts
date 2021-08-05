@@ -6,7 +6,6 @@ import { compile as EJSCompile } from 'ejs';
 import prettier from 'prettier';
 import { inputPromptStringValue } from './lib/helper';
 import { names } from './lib/helper';
-import findUp from 'find-up';
 import consola from 'consola';
 import chalk from 'chalk';
 
@@ -35,27 +34,14 @@ const frameworkSpecificInfo = (framework: Framework): FrameworkSpecificInfo => {
   }
 };
 
-const getMiddlewarerGenPath = (userDir?: string) => {
-  const nearestProjectDir = path.dirname(
-    findUp.sync(['package.json'], {
-      type: 'file',
-    })
+const getMiddlewarerGenPath = (projectDir: string, userDir?: string) => {
+  const middlewareDirPath = path.resolve(
+    projectDir,
+    'src',
+    userDir ? userDir : DEFAULT_MIDDLEWARE_DIR_PATH
   );
 
-  const middlewareDirPath = process.env.MW_GEN_LOCAL
-    ? path.resolve(__dirname, '../project/src/middleware')
-    : path.resolve(
-        nearestProjectDir,
-        'src',
-        userDir ? userDir : DEFAULT_MIDDLEWARE_DIR_PATH
-      );
-
   // fs.ensureDirSync(middlewareDirPath);
-
-  if (process.env.MW_GEN_LOCAL) {
-    consola.info('Using local project:');
-    consola.info(middlewareDirPath);
-  }
 
   return middlewareDirPath;
 };
@@ -111,8 +97,12 @@ export const useMiddlewareGenerator = (cli: CAC) => {
         const middlewareNames = names(name);
         const fileNameNames = names(options.fileName ?? name);
 
+        const projectDirPath = process.env.GEN_LOCAL
+          ? path.resolve(__dirname, '../project')
+          : process.cwd();
+
         const generatedFilePath = path.resolve(
-          getMiddlewarerGenPath(options.dir),
+          getMiddlewarerGenPath(projectDirPath, options.dir),
           `${fileNameNames.fileName}.ts`
         );
 
@@ -159,7 +149,7 @@ export const useMiddlewareGenerator = (cli: CAC) => {
           consola.info(`functional: ${chalk.cyan(options.functional)}`);
           consola.info(`override: ${chalk.cyan(options.override)}`);
           consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
-          consola.info(`dir: ${chalk.cyan(options.dir)}`);
+          options.dir && consola.info(`dir: ${chalk.cyan(options.dir)}`);
 
           consola.info(
             `File will be created: ${chalk.green(generatedFilePath)}`

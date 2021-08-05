@@ -9,9 +9,15 @@ Experimental works for Midway-CLI generator (fragments / components)
 较稳定的 generator：
 
 ```bash
+yarn dev c
+yarn dev c user
+
+
 yarn dev orm setup
 yarn dev orm entity user
-yarn dev orm entity user --dry-run
+yarn dev orm subscriber user --dry-run
+
+
 
 ```
 

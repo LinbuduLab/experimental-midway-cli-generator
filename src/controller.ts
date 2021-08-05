@@ -12,27 +12,12 @@ import findUp from 'find-up';
 
 const DEFAULT_CONTROLLER_DIR_PATH = 'controller';
 
-const getControllerGenPath = (userDir?: string) => {
-  const nearestProjectDir = path.dirname(
-    findUp.sync(['package.json'], {
-      type: 'file',
-    })
+const getControllerGenPath = (projectDir: string, userDir?: string) => {
+  const controllerPath = path.resolve(
+    projectDir,
+    'src',
+    userDir ? userDir : DEFAULT_CONTROLLER_DIR_PATH
   );
-
-  const controllerPath = process.env.MW_GEN_LOCAL
-    ? path.resolve(__dirname, '../project/src/controller')
-    : path.resolve(
-        nearestProjectDir,
-        'src',
-        userDir ? userDir : DEFAULT_CONTROLLER_DIR_PATH
-      );
-
-  // fs.ensureDirSync(controllerPath);
-
-  if (process.env.MW_GEN_LOCAL) {
-    consola.info('Using local project:');
-    consola.info(controllerPath);
-  }
 
   return controllerPath;
 };
@@ -78,9 +63,13 @@ export const useControllerGenerator = (cli: CAC) => {
           ? `${fileNameNames.fileName}.controller`
           : fileNameNames.fileName;
 
+        const projectDirPath = process.env.GEN_LOCAL
+          ? path.resolve(__dirname, '../project')
+          : process.cwd();
+
         // FIXME: validate
         const generatedPath = path.resolve(
-          getControllerGenPath(options.dir),
+          getControllerGenPath(projectDirPath, options.dir),
           `${fileName}.ts`
         );
 
@@ -128,7 +117,7 @@ export const useControllerGenerator = (cli: CAC) => {
           consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
           consola.info(`override: ${chalk.cyan(options.override)}`);
           consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
-          consola.info(`dir: ${chalk.cyan(options.dir)}`);
+          options.dir && consola.info(`dir: ${chalk.cyan(options.dir)}`);
 
           consola.info(`File will be created: ${chalk.green(generatedPath)}`);
         }

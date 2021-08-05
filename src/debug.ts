@@ -10,23 +10,10 @@ import chalk from 'chalk';
 
 const DEFAULT_DEBUG_FILE_PATH = '.vscode/launch.json';
 
-const getDebugGenPath = () => {
-  const nearestProjectDir = path.dirname(
-    findUp.sync(['package.json'], {
-      type: 'file',
-    })
-  );
-
-  const debugPath = process.env.MW_GEN_LOCAL
-    ? path.resolve(__dirname, '../project', DEFAULT_DEBUG_FILE_PATH)
-    : path.resolve(nearestProjectDir, DEFAULT_DEBUG_FILE_PATH);
+const getDebugGenPath = (projectDirPath: string) => {
+  const debugPath = path.resolve(projectDirPath, DEFAULT_DEBUG_FILE_PATH);
 
   fs.ensureFileSync(debugPath);
-
-  if (process.env.MW_GEN_LOCAL) {
-    consola.info('Using local project:');
-    consola.info(debugPath);
-  }
 
   return debugPath;
 };
@@ -55,7 +42,11 @@ export const useDebuggerGenerator = (cli: CAC) => {
           );
         }
 
-        const generatedPath = getDebugGenPath();
+        const projectDirPath = process.env.GEN_LOCAL
+          ? path.resolve(__dirname, '../project')
+          : process.cwd();
+
+        const generatedPath = getDebugGenPath(projectDirPath);
 
         consola.info(
           `Debug config path will be created in ${chalk.green(generatedPath)}`

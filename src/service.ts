@@ -12,27 +12,12 @@ import chalk from 'chalk';
 
 const DEFAULT_SERVICE_DIR_PATH = 'service';
 
-const getServiceGenPath = (userDir?: string) => {
-  const nearestProjectDir = path.dirname(
-    findUp.sync(['package.json'], {
-      type: 'file',
-    })
+const getServiceGenPath = (projectDir: string, userDir?: string) => {
+  const servicePath = path.resolve(
+    projectDir,
+    'src',
+    userDir ? userDir : DEFAULT_SERVICE_DIR_PATH
   );
-
-  const servicePath = process.env.MW_GEN_LOCAL
-    ? path.resolve(__dirname, '../project/src/service')
-    : path.resolve(
-        nearestProjectDir,
-        'src',
-        userDir ? userDir : DEFAULT_SERVICE_DIR_PATH
-      );
-
-  // fs.ensureDirSync(servicePath);
-
-  if (process.env.MW_GEN_LOCAL) {
-    consola.info('Using local project:');
-    consola.info(servicePath);
-  }
 
   return servicePath;
 };
@@ -70,14 +55,16 @@ export const useServiceGenerator = (cli: CAC) => {
         const serviceNames = names(name);
         const fileNameNames = names(options.fileName ?? name);
 
-        console.log('options: ', options);
+        const projectDirPath = process.env.GEN_LOCAL
+          ? path.resolve(__dirname, '../project')
+          : process.cwd();
 
         const fileName = options.dotName
           ? `${fileNameNames.fileName}.service`
           : fileNameNames.fileName;
 
         const generatedPath = path.resolve(
-          getServiceGenPath(options.dir),
+          getServiceGenPath(projectDirPath, options.dir),
           `${fileName}.ts`
         );
 
@@ -116,7 +103,7 @@ export const useServiceGenerator = (cli: CAC) => {
           consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
           consola.info(`override: ${chalk.cyan(options.override)}`);
           consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
-          consola.info(`dir: ${chalk.cyan(options.dir)}`);
+          options.dir && consola.info(`dir: ${chalk.cyan(options.dir)}`);
 
           consola.info(`File will be created: ${chalk.green(generatedPath)}`);
         }

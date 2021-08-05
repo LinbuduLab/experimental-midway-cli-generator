@@ -15,34 +15,18 @@ type SLSGeneratorType = 'faas' | 'aggr';
 const DEFAULT_FAAS_DIR_PATH = 'functions';
 const DEFAULT_AGGR_DIR_PATH = 'controller';
 
-const getSLSGenPath = (userDir?: string) => {
-  const nearestProjectDir = path.dirname(
-    findUp.sync(['package.json'], {
-      type: 'file',
-    })
+const getSLSGenPath = (projectDirPath: string, userDir?: string) => {
+  const faasPath = path.resolve(
+    projectDirPath,
+    'src',
+    userDir ? userDir : DEFAULT_FAAS_DIR_PATH
   );
 
-  const faasPath = process.env.MW_GEN_LOCAL
-    ? path.resolve(__dirname, '../project/src/functions')
-    : path.resolve(
-        nearestProjectDir,
-        'src',
-        userDir ? userDir : DEFAULT_FAAS_DIR_PATH
-      );
-
-  const aggrPath = process.env.MW_GEN_LOCAL
-    ? path.resolve(__dirname, '../project/src/controller')
-    : path.resolve(
-        nearestProjectDir,
-        'src',
-        userDir ? userDir : DEFAULT_AGGR_DIR_PATH
-      );
-
-  if (process.env.MW_GEN_LOCAL) {
-    consola.info('Using local project:');
-    consola.info(`faasPath: ${faasPath}`);
-    consola.info(`aggrPath: ${aggrPath}`);
-  }
+  const aggrPath = path.resolve(
+    projectDirPath,
+    'src',
+    userDir ? userDir : DEFAULT_AGGR_DIR_PATH
+  );
 
   return { faasPath, aggrPath };
 };
@@ -92,7 +76,7 @@ export const useServerlessGenerator = (cli: CAC) => {
     .option('--file-name [fileName]', 'File name')
     .option('--dir [dir]', 'Dir name for generated')
     .option('--dry-run [dryRun]', 'Dry run to see what is happening')
-    .action(async (name, type: SLSGeneratorType, options) => {
+    .action(async (type: SLSGeneratorType, name, options) => {
       try {
         if (options.dryRun) {
           consola.success('Executing in `dry run` mode, nothing will happen.');
@@ -152,7 +136,12 @@ export const useServerlessGenerator = (cli: CAC) => {
         const outputContent = prettier.format(template, {
           parser: 'typescript',
         });
-        const outputPath = getSLSGenPath(options.dir);
+
+        const projectDirPath = process.env.GEN_LOCAL
+          ? path.resolve(__dirname, '../project')
+          : process.cwd();
+
+        const outputPath = getSLSGenPath(projectDirPath, options.dir);
 
         const finalFilePath = path.resolve(
           isFaaSType ? outputPath.faasPath : outputPath.aggrPath,
@@ -172,7 +161,7 @@ export const useServerlessGenerator = (cli: CAC) => {
           consola.info(`oss: ${chalk.cyan(options.oss)}`);
 
           consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
-          consola.info(`dir: ${chalk.cyan(options.dir)}`);
+          options.dir && consola.info(`dir: ${chalk.cyan(options.dir)}`);
 
           consola.info(`File will be created: ${chalk.green(finalFilePath)}`);
         }
