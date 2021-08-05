@@ -33,45 +33,70 @@ export const useSwaggerGenerator = (cli: CAC) => {
     })
     .option('--dry-run [dryRun]', 'Dry run to see what is happening')
     .action(async options => {
-      if (options.dryRun) {
-        consola.success('Executing in `dry run` mode, nothing will happen.');
+      try {
+        if (options.dryRun) {
+          consola.success('Executing in `dry run` mode, nothing will happen.');
+        }
+
+        options.localOnly = ensureBooleanType(options.localOnly);
+
+        const projectDirPath = process.env.GEN_LOCAL
+          ? path.resolve(__dirname, '../project')
+          : process.cwd();
+
+        consola.info(`Project location: ${chalk.green(projectDirPath)}`);
+
+        if (!checkDepExist(SWAGGER_PKG, projectDirPath)) {
+          consola.info(`Installing ${chalk.cyan(SWAGGER_PKG)}...`);
+          options.dryRun
+            ? consola.info('`[DryRun]` No deps will be installed.')
+            : installDep(SWAGGER_PKG, false, projectDirPath);
+        }
+
+        if (!options.dryRun) {
+          consola.info('Source code will be transformed.');
+          const project = new Project();
+
+          const configurationPath = path.resolve(
+            projectDirPath,
+            './src/configuration.ts'
+          );
+
+          if (!fs.existsSync(configurationPath)) {
+            consola.error(
+              `Cannot find ${chalk.cyan('configuration.ts')} in ${chalk.green(
+                configurationPath
+              )}`
+            );
+            process.exit(0);
+          }
+
+          const configurationSource =
+            project.addSourceFileAtPath(configurationPath);
+
+          addImportDeclaration(
+            configurationSource,
+            'swagger',
+            '@midwayjs/swagger',
+            ImportType.NAMESPACE_IMPORT
+          );
+
+          updateDecoratorArrayArgs(
+            configurationSource,
+            'Configuration',
+            'imports',
+            'swagger'
+          );
+
+          formatTSFile(configurationPath);
+        } else {
+          consola.info('`[DryRun]` Source code will be transformed.');
+        }
+
+        consola.success('Generator execution accomplished.');
+      } catch (error) {
+        consola.fatal('Generator execution failed. \n');
+        throw error;
       }
-
-      options.localOnly = ensureBooleanType(options.localOnly);
-      if (!checkDepExist(SWAGGER_PKG)) {
-        consola.info(`Installing ${chalk.cyan(SWAGGER_PKG)}...`);
-        options.dryRun
-          ? consola.info('`[DryRun]` No deps will be installed.')
-          : installDep(SWAGGER_PKG);
-      }
-
-      const projectDirPath = process.env.GEN_LOCAL
-        ? path.resolve(__dirname, '../project')
-        : process.cwd();
-
-      const project = new Project();
-
-      const configurationPath = path.resolve(
-        projectDirPath,
-        './src/configuration.ts'
-      );
-      const configurationSource =
-        project.addSourceFileAtPath(configurationPath);
-
-      addImportDeclaration(
-        configurationSource,
-        'swagger',
-        '@midwayjs/swagger',
-        ImportType.NAMESPACE_IMPORT
-      );
-
-      updateDecoratorArrayArgs(
-        configurationSource,
-        'Configuration',
-        'imports',
-        'swagger'
-      );
-
-      formatTSFile(configurationPath);
     });
 };

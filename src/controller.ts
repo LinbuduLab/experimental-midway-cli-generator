@@ -60,71 +60,82 @@ export const useControllerGenerator = (cli: CAC) => {
       default: false,
     })
     .action(async (name, options) => {
-      if (options.dryRun) {
-        consola.success('Executing in `dry run` mode, nothing will happen.');
-      }
-      if (!name) {
-        consola.warn('Controller name cannot be empty!');
-        name = await inputPromptStringValue('controller name');
-      }
+      try {
+        if (options.dryRun) {
+          consola.success('Executing in `dry run` mode, nothing will happen.');
+        }
+        if (!name) {
+          consola.warn('Controller name cannot be empty!');
+          name = await inputPromptStringValue('controller name');
+        }
 
-      // e.g. user
-      const controllerNames = names(name);
-      const fileNameNames = names(options.fileName ?? name);
+        // e.g. user
+        const controllerNames = names(name);
+        const fileNameNames = names(options.fileName ?? name);
 
-      // e.g. user.controller
-      const fileName = options.dotName
-        ? `${fileNameNames.fileName}.controller`
-        : fileNameNames.fileName;
+        // e.g. user.controller
+        const fileName = options.dotName
+          ? `${fileNameNames.fileName}.controller`
+          : fileNameNames.fileName;
 
-      // FIXME: validate
-      const generatedPath = path.resolve(
-        getControllerGenPath(options.dir),
-        `${fileName}.ts`
-      );
-
-      consola.info(
-        `Controller will be created in ${chalk.green(generatedPath)}`
-      );
-
-      const exist = fs.existsSync(generatedPath);
-
-      if (exist && !options.override) {
-        consola.error(
-          'File exist, enable `--override` to override existing file.'
+        // FIXME: validate
+        const generatedPath = path.resolve(
+          getControllerGenPath(options.dir),
+          `${fileName}.ts`
         );
-        process.exit(0);
-      } else if (exist) {
-        consola.warn('overriding exist file');
-      }
 
-      const tmp = fs.readFileSync(
-        path.join(
-          __dirname,
-          `./templates/controller/${
-            options.light ? 'controller.ts.ejs' : 'controller-full.ts.ejs'
-          }`
-        ),
-        { encoding: 'utf8' }
-      );
+        consola.info(
+          `Controller will be created in ${chalk.green(generatedPath)}`
+        );
 
-      const template = EJSCompile(tmp, {})({ name: controllerNames.className });
+        const exist = fs.existsSync(generatedPath);
 
-      const outputContent = prettier.format(template, { parser: 'typescript' });
+        if (exist && !options.override) {
+          consola.error(
+            'File exist, enable `--override` to override existing file.'
+          );
+          process.exit(0);
+        } else if (exist) {
+          consola.warn('overriding exist file');
+        }
 
-      if (!options.dryRun) {
-        fs.ensureFileSync(generatedPath);
-        fs.writeFileSync(generatedPath, outputContent);
-      } else {
-        consola.success('Controller generator invoked with:');
-        consola.info(`name: ${chalk.cyan(name)}`);
-        consola.info(`light: ${chalk.cyan(options.light)}`);
-        consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
-        consola.info(`override: ${chalk.cyan(options.override)}`);
-        consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
-        consola.info(`dir: ${chalk.cyan(options.dir)}`);
+        const tmp = fs.readFileSync(
+          path.join(
+            __dirname,
+            `./templates/controller/${
+              options.light ? 'controller.ts.ejs' : 'controller-full.ts.ejs'
+            }`
+          ),
+          { encoding: 'utf8' }
+        );
 
-        consola.info(`File will be created: ${chalk.green(generatedPath)}`);
+        const template = EJSCompile(
+          tmp,
+          {}
+        )({ name: controllerNames.className });
+
+        const outputContent = prettier.format(template, {
+          parser: 'typescript',
+        });
+
+        if (!options.dryRun) {
+          fs.ensureFileSync(generatedPath);
+          fs.writeFileSync(generatedPath, outputContent);
+        } else {
+          consola.success('Controller generator invoked with:');
+          consola.info(`name: ${chalk.cyan(name)}`);
+          consola.info(`light: ${chalk.cyan(options.light)}`);
+          consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
+          consola.info(`override: ${chalk.cyan(options.override)}`);
+          consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
+          consola.info(`dir: ${chalk.cyan(options.dir)}`);
+
+          consola.info(`File will be created: ${chalk.green(generatedPath)}`);
+        }
+        consola.success('Generator execution accomplished.');
+      } catch (error) {
+        consola.fatal('Generator execution failed. \n');
+        throw error;
       }
     });
 };

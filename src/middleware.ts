@@ -91,74 +91,85 @@ export const useMiddlewareGenerator = (cli: CAC) => {
     })
     // TODO: interactive mode:  ignore all previous options
     .action(async (name, options) => {
-      if (options.dryRun) {
-        consola.success('Executing in `dry run` mode, nothing will happen.');
-      }
+      try {
+        if (options.dryRun) {
+          consola.success('Executing in `dry run` mode, nothing will happen.');
+        }
 
-      if (!name) {
-        consola.warn('Middleware name cannot be empty!');
-        name = await inputPromptStringValue('middleware name', 'tmp');
-      }
+        if (!name) {
+          consola.warn('Middleware name cannot be empty!');
+          name = await inputPromptStringValue('middleware name', 'tmp');
+        }
 
-      if (!['egg', 'koa', 'express'].includes(options.framework)) {
-        consola.error('Invalid framework, use one of `egg`/`koa`/`express`');
-        process.exit(0);
-      }
+        if (!['egg', 'koa', 'express'].includes(options.framework)) {
+          consola.error('Invalid framework, use one of `egg`/`koa`/`express`');
+          process.exit(0);
+        }
 
-      const info = frameworkSpecificInfo(options.framework);
+        const info = frameworkSpecificInfo(options.framework);
 
-      const middlewareNames = names(name);
-      const fileNameNames = names(options.fileName ?? name);
+        const middlewareNames = names(name);
+        const fileNameNames = names(options.fileName ?? name);
 
-      const generatedFilePath = path.resolve(
-        getMiddlewarerGenPath(options.dir),
-        `${fileNameNames.fileName}.ts`
-      );
-
-      consola.info(
-        `Middleware will be created in ${chalk.green(generatedFilePath)}`
-      );
-
-      const exist = fs.existsSync(generatedFilePath);
-
-      if (exist && !options.override) {
-        consola.error(
-          'File exist, enable `--override` to override existing file.'
+        const generatedFilePath = path.resolve(
+          getMiddlewarerGenPath(options.dir),
+          `${fileNameNames.fileName}.ts`
         );
-        process.exit(0);
-      } else if (exist) {
-        consola.warn('overriding exist file');
-      }
 
-      const tmp = fs.readFileSync(path.join(__dirname, info.templatePath), {
-        encoding: 'utf8',
-      });
+        consola.info(
+          `Middleware will be created in ${chalk.green(generatedFilePath)}`
+        );
 
-      const template = EJSCompile(
-        tmp,
-        {}
-      )({
-        name: middlewareNames.className,
-        useExternalLib: options.external,
-        functional: options.functional,
-      });
+        const exist = fs.existsSync(generatedFilePath);
 
-      const outputContent = prettier.format(template, { parser: 'typescript' });
+        if (exist && !options.override) {
+          consola.error(
+            'File exist, enable `--override` to override existing file.'
+          );
+          process.exit(0);
+        } else if (exist) {
+          consola.warn('overriding exist file');
+        }
 
-      if (!options.dryRun) {
-        fs.ensureFileSync(generatedFilePath);
-        fs.writeFileSync(generatedFilePath, outputContent);
-      } else {
-        consola.success('Middleware generator invoked with:');
-        consola.info(`name: ${chalk.cyan(name)}`);
-        consola.info(`external: ${chalk.cyan(options.external)}`);
-        consola.info(`framework: ${chalk.cyan(options.framework)}`);
-        consola.info(`functional: ${chalk.cyan(options.functional)}`);
-        consola.info(`override: ${chalk.cyan(options.override)}`);
-        consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
-        consola.info(`dir: ${chalk.cyan(options.dir)}`);
+        const tmp = fs.readFileSync(path.join(__dirname, info.templatePath), {
+          encoding: 'utf8',
+        });
 
-        consola.info(`File will be created: ${chalk.green(generatedFilePath)}`);
+        const template = EJSCompile(
+          tmp,
+          {}
+        )({
+          name: middlewareNames.className,
+          useExternalLib: options.external,
+          functional: options.functional,
+        });
+
+        const outputContent = prettier.format(template, {
+          parser: 'typescript',
+        });
+
+        if (!options.dryRun) {
+          fs.ensureFileSync(generatedFilePath);
+          fs.writeFileSync(generatedFilePath, outputContent);
+        } else {
+          consola.success('Middleware generator invoked with:');
+          consola.info(`name: ${chalk.cyan(name)}`);
+          consola.info(`external: ${chalk.cyan(options.external)}`);
+          consola.info(`framework: ${chalk.cyan(options.framework)}`);
+          consola.info(`functional: ${chalk.cyan(options.functional)}`);
+          consola.info(`override: ${chalk.cyan(options.override)}`);
+          consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
+          consola.info(`dir: ${chalk.cyan(options.dir)}`);
+
+          consola.info(
+            `File will be created: ${chalk.green(generatedFilePath)}`
+          );
+        }
+
+        consola.success('Generator execution accomplished.');
+      } catch (error) {
+        consola.fatal('Generator execution failed. \n');
+        throw error;
       }
     });
 };

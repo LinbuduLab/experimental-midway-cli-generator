@@ -19,49 +19,56 @@ export const usePrismaGenerator = (cli: CAC) => {
     })
     .option('--dry-run [dryRun]', 'Dry run to see what is happening')
     .action(async options => {
-      console.log(consola.info('Executing `prisma init`'));
-      const pkg = readPackageSync({ cwd: process.cwd() });
+      try {
+        console.log(consola.info('Executing `prisma init`'));
+        const pkg = readPackageSync({ cwd: process.cwd() });
 
-      // if (
-      //   !Object.keys(pkg.dependencies).includes('@prisma/client') ||
-      //   Object.keys(pkg.devDependencies).includes('prisma')
-      // ) {
-      //   consola.error(
-      //     'Make sure you have `@prisma/client` installed as `dependencies`, and `prisma` as `devDependencies`'
-      //   );
-      //   process.exit(0);
-      // }
+        // if (
+        //   !Object.keys(pkg.dependencies).includes('@prisma/client') ||
+        //   Object.keys(pkg.devDependencies).includes('prisma')
+        // ) {
+        //   consola.error(
+        //     'Make sure you have `@prisma/client` installed as `dependencies`, and `prisma` as `devDependencies`'
+        //   );
+        //   process.exit(0);
+        // }
 
-      const cwd = process.env.GEN_LOCAL
-        ? path.resolve(__dirname, '../project')
-        : process.cwd();
+        const cwd = process.env.GEN_LOCAL
+          ? path.resolve(__dirname, '../project')
+          : process.cwd();
 
-      const pkgPath = path.resolve(cwd, 'package.json');
+        const pkgPath = path.resolve(cwd, 'package.json');
 
-      execa.sync('prisma init', {
-        cwd,
-        stdio: 'inherit',
-        preferLocal: true,
-        shell: true,
-      });
+        execa.sync('prisma init', {
+          cwd,
+          stdio: 'inherit',
+          preferLocal: true,
+          shell: true,
+        });
 
-      addNPMScripts(pkgPath, [
-        {
-          script: 'prisma:gen',
-          content: 'prisma generate',
-        },
-        {
-          script: 'prisma:push',
-          content: 'prisma db push',
-        },
-        {
-          script: 'prisma:pull',
-          content: 'prisma db pull',
-        },
-        {
-          script: 'prisma:migrate',
-          content: 'prisma migrate --preview-feature',
-        },
-      ]);
+        addNPMScripts(pkgPath, [
+          {
+            script: 'prisma:gen',
+            content: 'prisma generate',
+          },
+          {
+            script: 'prisma:push',
+            content: 'prisma db push',
+          },
+          {
+            script: 'prisma:pull',
+            content: 'prisma db pull',
+          },
+          {
+            script: 'prisma:migrate',
+            content: 'prisma migrate --preview-feature',
+          },
+        ]);
+
+        consola.success('Generator execution accomplished.');
+      } catch (error) {
+        consola.fatal('Generator execution failed. \n');
+        throw error;
+      }
     });
 };

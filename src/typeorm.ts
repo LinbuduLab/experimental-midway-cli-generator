@@ -109,203 +109,214 @@ export const useTypeORMGenerator = (cli: CAC) => {
     .option('--dir [dir]', 'Dir name for generated')
     .option('--dry-run [dryRun]', 'Dry run to see what is happening')
     .action(async (type: TypeORMGenerator, name, options) => {
-      if (options.dryRun) {
-        consola.success('Executing in `dry run` mode, nothing will happen.');
-      }
+      try {
+        if (options.dryRun) {
+          consola.success('Executing in `dry run` mode, nothing will happen.');
+        }
 
-      if (!['setup', 'entity', 'subscriber'].includes(type)) {
-        consola.error(
-          `Invalid generator type: ${type}, use one of setup/entiy/subscriber`
-        );
-        process.exit(0);
-      }
-
-      if (['entity', 'subscriber'].includes(type) && !name) {
-        const capitalCaseRequireName = capitalCase(type);
-        consola.warn(`${capitalCaseRequireName} name cannot be empty!`);
-        name = await inputPromptStringValue(`${type} name`, 'tmp');
-      }
-
-      options.activeRecord = ensureBooleanType(options.activeRecord);
-      options.relation = ensureBooleanType(options.relation);
-      options.dotName = ensureBooleanType(options.dotName);
-      options.transaction = ensureBooleanType(options.transaction);
-
-      let finalFilePath: string;
-      let finalFileContent: string;
-
-      const nameNames = names(name ?? '');
-      const fileNameNames = names(options.fileName ?? name ?? '');
-
-      switch (type.toLocaleUpperCase()) {
-        case TypeORMGenerator.SETUP:
-          const projectDirPath = process.env.GEN_LOCAL
-            ? path.resolve(__dirname, '../project')
-            : process.cwd();
-
-          if (!checkDepExist(ORM_PKG, projectDirPath)) {
-            consola.info(`Installing ${chalk.cyan(ORM_PKG)}...`);
-            options.dryRun
-              ? consola.info('`[DryRun]` No deps will be installed.')
-              : installDep(ORM_PKG, false, projectDirPath);
-          }
-
-          const project = new Project();
-
-          const configPath = path.resolve(
-            projectDirPath,
-            './src/config/config.default.ts'
+        if (!['setup', 'entity', 'subscriber'].includes(type)) {
+          consola.error(
+            `Invalid generator type: ${type}, use one of setup/entiy/subscriber`
           );
+          process.exit(0);
+        }
 
-          const configSource = project.addSourceFileAtPath(configPath);
+        if (['entity', 'subscriber'].includes(type) && !name) {
+          const capitalCaseRequireName = capitalCase(type);
+          consola.warn(`${capitalCaseRequireName} name cannot be empty!`);
+          name = await inputPromptStringValue(`${type} name`, 'tmp');
+        }
 
-          const configurationPath = path.resolve(
-            projectDirPath,
-            './src/configuration.ts'
-          );
+        options.activeRecord = ensureBooleanType(options.activeRecord);
+        options.relation = ensureBooleanType(options.relation);
+        options.dotName = ensureBooleanType(options.dotName);
+        options.transaction = ensureBooleanType(options.transaction);
 
-          if (!options.dryRun) {
-            consola.info('Source code will be transformed.');
-            // 新增export const orm = {}
-            addConstExport(configSource, 'orm', { type: 'sqlite' });
+        let finalFilePath: string;
+        let finalFileContent: string;
 
-            formatTSFile(configPath);
+        const nameNames = names(name ?? '');
+        const fileNameNames = names(options.fileName ?? name ?? '');
 
-            const configurationSource =
-              project.addSourceFileAtPath(configurationPath);
+        switch (type.toLocaleUpperCase()) {
+          case TypeORMGenerator.SETUP:
+            const projectDirPath = process.env.GEN_LOCAL
+              ? path.resolve(__dirname, '../project')
+              : process.cwd();
 
-            addImportDeclaration(
-              configurationSource,
-              'orm',
-              '@midwayjs/orm',
-              ImportType.NAMESPACE_IMPORT
+            consola.info(`Project location: ${chalk.green(projectDirPath)}`);
+
+            if (!checkDepExist(ORM_PKG, projectDirPath)) {
+              consola.info(`Installing ${chalk.cyan(ORM_PKG)}...`);
+              options.dryRun
+                ? consola.info('`[DryRun]` No deps will be installed.')
+                : installDep(ORM_PKG, false, projectDirPath);
+            }
+
+            const project = new Project();
+
+            const configPath = path.resolve(
+              projectDirPath,
+              './src/config/config.default.ts'
             );
 
-            updateDecoratorArrayArgs(
-              configurationSource,
-              'Configuration',
-              'imports',
-              'orm'
+            const configSource = project.addSourceFileAtPath(configPath);
+
+            const configurationPath = path.resolve(
+              projectDirPath,
+              './src/configuration.ts'
             );
 
-            formatTSFile(configurationPath);
-          } else {
-            consola.info('`[DryRun]` Source code will be transformed.');
+            if (!options.dryRun) {
+              consola.info('Source code will be transformed.');
+              // 新增export const orm = {}
+              addConstExport(configSource, 'orm', { type: 'sqlite' });
+
+              formatTSFile(configPath);
+
+              const configurationSource =
+                project.addSourceFileAtPath(configurationPath);
+
+              addImportDeclaration(
+                configurationSource,
+                'orm',
+                '@midwayjs/orm',
+                ImportType.NAMESPACE_IMPORT
+              );
+
+              updateDecoratorArrayArgs(
+                configurationSource,
+                'Configuration',
+                'imports',
+                'orm'
+              );
+
+              formatTSFile(configurationPath);
+            } else {
+              consola.info('`[DryRun]` Source code will be transformed.');
+            }
+
+            break;
+
+          case TypeORMGenerator.ENTITY:
+            const writeFileNameEntity = options.dotName
+              ? `${fileNameNames.fileName}.entity`
+              : fileNameNames.fileName;
+
+            const tmpEntity = fs.readFileSync(
+              path.join(
+                __dirname,
+                `./templates/typeorm/${
+                  options.relation
+                    ? 'relation-entity.ts.ejs'
+                    : 'plain-entity.ts.ejs'
+                }`
+              ),
+              { encoding: 'utf8' }
+            );
+
+            const templateEntity = EJSCompile(
+              tmpEntity,
+              {}
+            )({
+              entity: nameNames.className,
+              activeRecord: options.activeRecord,
+            });
+
+            const outputContentEntity = prettier.format(templateEntity, {
+              parser: 'typescript',
+            });
+
+            const { entityPath: entityDirPath } = getTypeORMGenPath(
+              options.dir
+            );
+
+            finalFilePath = path.resolve(
+              entityDirPath,
+              `${writeFileNameEntity}.ts`
+            );
+
+            consola.info(
+              `Entity will be created in ${chalk.green(finalFilePath)}`
+            );
+
+            finalFileContent = outputContentEntity;
+
+            break;
+
+          case TypeORMGenerator.SUBSCRIBER:
+            const writeFileName = options.dotName
+              ? `${fileNameNames.fileName}.subscriber`
+              : fileNameNames.fileName;
+
+            const tmp = fs.readFileSync(
+              path.join(__dirname, './templates/typeorm/subscriber.ts.ejs'),
+              { encoding: 'utf8' }
+            );
+
+            const template = EJSCompile(
+              tmp,
+              {}
+            )({
+              subscriber: nameNames.className,
+              transaction: options.transaction,
+            });
+
+            const outputContent = prettier.format(template, {
+              parser: 'typescript',
+            });
+
+            const { subscriberPath: subscriberDirPath } = getTypeORMGenPath(
+              options.dir
+            );
+
+            finalFilePath = path.resolve(
+              subscriberDirPath,
+              `${writeFileName}.ts`
+            );
+
+            consola.info(
+              `Subscriber will be created in ${chalk.green(finalFilePath)}`
+            );
+
+            finalFileContent = outputContent;
+
+            break;
+        }
+
+        if (!options.dryRun) {
+          if (type.toLocaleUpperCase() !== TypeORMGenerator.SETUP) {
+            fs.ensureFileSync(finalFilePath);
+            fs.writeFileSync(finalFilePath, finalFileContent);
+          }
+        } else {
+          consola.success('TypeORM generator invoked with:');
+          consola.info(`type: ${chalk.cyan(type)}`);
+          ['entity', 'subscriber'].includes(type) &&
+            consola.info(`name: ${chalk.cyan(name)}`);
+
+          if (type.toLocaleUpperCase() === TypeORMGenerator.ENTITY) {
+            consola.info(`active record: ${chalk.cyan(options.activeRecord)}`);
+            consola.info(`relation: ${chalk.cyan(options.relation)}`);
           }
 
-          break;
+          if (type.toLocaleUpperCase() === TypeORMGenerator.SUBSCRIBER) {
+            consola.info(`transaction: ${chalk.cyan(options.transaction)}`);
+          }
 
-        case TypeORMGenerator.ENTITY:
-          const writeFileNameEntity = options.dotName
-            ? `${fileNameNames.fileName}.entity`
-            : fileNameNames.fileName;
+          consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
+          fileNameNames.fileName &&
+            consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
+          options.dir && consola.info(`dir: ${chalk.cyan(options.dir)}`);
 
-          const tmpEntity = fs.readFileSync(
-            path.join(
-              __dirname,
-              `./templates/typeorm/${
-                options.relation
-                  ? 'relation-entity.ts.ejs'
-                  : 'plain-entity.ts.ejs'
-              }`
-            ),
-            { encoding: 'utf8' }
-          );
-
-          const templateEntity = EJSCompile(
-            tmpEntity,
-            {}
-          )({
-            entity: nameNames.className,
-            activeRecord: options.activeRecord,
-          });
-
-          const outputContentEntity = prettier.format(templateEntity, {
-            parser: 'typescript',
-          });
-
-          const { entityPath: entityDirPath } = getTypeORMGenPath(options.dir);
-
-          finalFilePath = path.resolve(
-            entityDirPath,
-            `${writeFileNameEntity}.ts`
-          );
-
-          consola.info(
-            `Entity will be created in ${chalk.green(finalFilePath)}`
-          );
-
-          finalFileContent = outputContentEntity;
-
-          break;
-
-        case TypeORMGenerator.SUBSCRIBER:
-          const writeFileName = options.dotName
-            ? `${fileNameNames.fileName}.subscriber`
-            : fileNameNames.fileName;
-
-          const tmp = fs.readFileSync(
-            path.join(__dirname, './templates/typeorm/subscriber.ts.ejs'),
-            { encoding: 'utf8' }
-          );
-
-          const template = EJSCompile(
-            tmp,
-            {}
-          )({
-            subscriber: nameNames.className,
-            transaction: options.transaction,
-          });
-
-          const outputContent = prettier.format(template, {
-            parser: 'typescript',
-          });
-
-          const { subscriberPath: subscriberDirPath } = getTypeORMGenPath(
-            options.dir
-          );
-
-          finalFilePath = path.resolve(
-            subscriberDirPath,
-            `${writeFileName}.ts`
-          );
-
-          consola.info(
-            `Subscriber will be created in ${chalk.green(finalFilePath)}`
-          );
-
-          finalFileContent = outputContent;
-
-          break;
-      }
-
-      if (!options.dryRun) {
-        if (type.toLocaleUpperCase() !== TypeORMGenerator.SETUP) {
-          fs.ensureFileSync(finalFilePath);
-          fs.writeFileSync(finalFilePath, finalFileContent);
-        }
-      } else {
-        consola.success('TypeORM generator invoked with:');
-        consola.info(`type: ${chalk.cyan(type)}`);
-        ['entity', 'subscriber'].includes(type) &&
-          consola.info(`name: ${chalk.cyan(name)}`);
-
-        if (type.toLocaleUpperCase() === TypeORMGenerator.ENTITY) {
-          consola.info(`active record: ${chalk.cyan(options.activeRecord)}`);
-          consola.info(`relation: ${chalk.cyan(options.relation)}`);
+          finalFilePath &&
+            consola.info(`File will be created: ${chalk.green(finalFilePath)}`);
         }
 
-        if (type.toLocaleUpperCase() === TypeORMGenerator.SUBSCRIBER) {
-          consola.info(`transaction: ${chalk.cyan(options.transaction)}`);
-        }
-
-        consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
-        fileNameNames.fileName &&
-          consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
-        options.dir && consola.info(`dir: ${chalk.cyan(options.dir)}`);
-
-        finalFilePath &&
-          consola.info(`File will be created: ${chalk.green(finalFilePath)}`);
+        consola.success('Generator execution accomplished.');
+      } catch (error) {
+        consola.fatal('Generator execution failed. \n');
+        throw error;
       }
     });
 };

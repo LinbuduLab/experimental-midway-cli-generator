@@ -534,10 +534,10 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
-"@midwayjs/orm@^2.12.1":
-  version "2.12.1"
-  resolved "https://registry.yarnpkg.com/@midwayjs/orm/-/orm-2.12.1.tgz#714d57c8748618c28b3dd5311e8e26cae159e08d"
-  integrity sha512-tJJ/6Db7CzRi0htfmyhJpPyLPsIUqNJM5ATaOWOyujZOT6F6V3T/yWPt5guNDJp6iAhRRdwpuzuTmvbzrYZdWw==
+"@midwayjs/swagger@^1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@midwayjs/swagger/-/swagger-1.0.7.tgz#dd32186f370262894ed2adda8436ba9fa392d270"
+  integrity sha512-ZCJdlTDY7BR8ChdjSvxqsi3L4f+HZ0FWLwZvh2xqocr7jJqYfW4IJH6O7cmBOjqk/ubdyOifLUvsdNVjicRhZA==
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"

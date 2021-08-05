@@ -93,86 +93,93 @@ export const useServerlessGenerator = (cli: CAC) => {
     .option('--dir [dir]', 'Dir name for generated')
     .option('--dry-run [dryRun]', 'Dry run to see what is happening')
     .action(async (name, type: SLSGeneratorType, options) => {
-      if (options.dryRun) {
-        consola.success('Executing in `dry run` mode, nothing will happen.');
-      }
+      try {
+        if (options.dryRun) {
+          consola.success('Executing in `dry run` mode, nothing will happen.');
+        }
 
-      options.http = ensureBooleanType(options.http);
-      options.event = ensureBooleanType(options.event);
-      options.gateway = ensureBooleanType(options.gateway);
-      options.timer = ensureBooleanType(options.timer);
-      options.oss = ensureBooleanType(options.oss);
+        options.http = ensureBooleanType(options.http);
+        options.event = ensureBooleanType(options.event);
+        options.gateway = ensureBooleanType(options.gateway);
+        options.timer = ensureBooleanType(options.timer);
+        options.oss = ensureBooleanType(options.oss);
 
-      if (!type) {
-        consola.warn('No type input, applying default type: `faas`');
-        type = 'faas';
-      }
+        if (!type) {
+          consola.warn('No type input, applying default type: `faas`');
+          type = 'faas';
+        }
 
-      if (!['faas', 'aggr'].includes(type)) {
-        consola.error('Invalid type, applying default type: `faas`');
-        type = 'faas';
-      }
+        if (!['faas', 'aggr'].includes(type)) {
+          consola.error('Invalid type, applying default type: `faas`');
+          type = 'faas';
+        }
 
-      const isFaaSType = type === 'faas';
+        const isFaaSType = type === 'faas';
 
-      if (!name) {
-        name = await inputPromptStringValue(
-          isFaaSType ? 'function service name' : 'aggregation class name',
-          isFaaSType ? 'Function' : 'Aggr'
+        if (!name) {
+          name = await inputPromptStringValue(
+            isFaaSType ? 'function service name' : 'aggregation class name',
+            isFaaSType ? 'Function' : 'Aggr'
+          );
+        }
+
+        const nameNames = names(name);
+        const fileNameNames = names(options.fileName ?? name);
+
+        const originContent = fs.readFileSync(
+          path.join(
+            __dirname,
+            `./templates/serverless/${
+              isFaaSType ? 'function.ts.ejs' : 'aggr.ts.ejs'
+            }`
+          ),
+          { encoding: 'utf8' }
         );
-      }
 
-      const nameNames = names(name);
-      const fileNameNames = names(options.fileName ?? name);
+        const template = EJSCompile(
+          originContent,
+          {}
+        )({
+          [isFaaSType ? '__Function_Name__' : '__Class_Name__']:
+            nameNames.className,
+          event: options.event,
+          oss: options.oss,
+          gateway: options.gateway,
+          timer: options.timer,
+          http: options.http,
+        });
 
-      const originContent = fs.readFileSync(
-        path.join(
-          __dirname,
-          `./templates/serverless/${
-            isFaaSType ? 'function.ts.ejs' : 'aggr.ts.ejs'
-          }`
-        ),
-        { encoding: 'utf8' }
-      );
+        const outputContent = prettier.format(template, {
+          parser: 'typescript',
+        });
+        const outputPath = getSLSGenPath(options.dir);
 
-      const template = EJSCompile(
-        originContent,
-        {}
-      )({
-        [isFaaSType
-          ? '__Function_Name__'
-          : '__Class_Name__']: nameNames.className,
-        event: options.event,
-        oss: options.oss,
-        gateway: options.gateway,
-        timer: options.timer,
-        http: options.http,
-      });
+        const finalFilePath = path.resolve(
+          isFaaSType ? outputPath.faasPath : outputPath.aggrPath,
+          `${fileNameNames.fileName}.ts`
+        );
 
-      const outputContent = prettier.format(template, { parser: 'typescript' });
-      const outputPath = getSLSGenPath(options.dir);
+        if (!options.dryRun) {
+          fs.writeFileSync(finalFilePath, outputContent);
+        } else {
+          consola.success('Serverless generator invoked with:');
+          consola.info(`type: ${chalk.cyan(type)}`);
 
-      const finalFilePath = path.resolve(
-        isFaaSType ? outputPath.faasPath : outputPath.aggrPath,
-        `${fileNameNames.fileName}.ts`
-      );
+          consola.info(`http: ${chalk.cyan(options.http)}`);
+          consola.info(`event: ${chalk.cyan(options.event)}`);
+          consola.info(`gateway: ${chalk.cyan(options.gateway)}`);
+          consola.info(`timer: ${chalk.cyan(options.timer)}`);
+          consola.info(`oss: ${chalk.cyan(options.oss)}`);
 
-      if (!options.dryRun) {
-        fs.writeFileSync(finalFilePath, outputContent);
-      } else {
-        consola.success('Serverless generator invoked with:');
-        consola.info(`type: ${chalk.cyan(type)}`);
+          consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
+          consola.info(`dir: ${chalk.cyan(options.dir)}`);
 
-        consola.info(`http: ${chalk.cyan(options.http)}`);
-        consola.info(`event: ${chalk.cyan(options.event)}`);
-        consola.info(`gateway: ${chalk.cyan(options.gateway)}`);
-        consola.info(`timer: ${chalk.cyan(options.timer)}`);
-        consola.info(`oss: ${chalk.cyan(options.oss)}`);
-
-        consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
-        consola.info(`dir: ${chalk.cyan(options.dir)}`);
-
-        consola.info(`File will be created: ${chalk.green(finalFilePath)}`);
+          consola.info(`File will be created: ${chalk.green(finalFilePath)}`);
+        }
+        consola.success('Generator execution accomplished.');
+      } catch (error) {
+        consola.fatal('Generator execution failed. \n');
+        throw error;
       }
     });
 };

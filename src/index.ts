@@ -9,6 +9,7 @@ import { useServerlessGenerator } from './serverless';
 import { useTypeORMGenerator } from './typeorm';
 import { useTypeGraphQLGenerator } from './type-graphql';
 import { usePrismaGenerator } from './prisma';
+import { useSwaggerGenerator } from './swagger';
 
 const cli = cac();
 
@@ -23,5 +24,6 @@ useServerlessGenerator(cli);
 useTypeORMGenerator(cli);
 useTypeGraphQLGenerator(cli);
 usePrismaGenerator(cli);
+useSwaggerGenerator(cli);
 
 cli.parse();

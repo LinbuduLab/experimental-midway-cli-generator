@@ -23,5 +23,3 @@ export default (appInfo: EggAppInfo) => {
 
   return config;
 };
-
-export const orm = { type: "sqlite" };
