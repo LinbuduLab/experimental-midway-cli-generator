@@ -32,6 +32,18 @@ export function getLifeCycleClassMethods(
   ) as LifeCycleMethod[];
 }
 
+// 获取生命周期类已有的方法声明
+export function getLifeCycleClassMethodDeclaration(
+  source: SourceFile,
+  methodName: LifeCycleMethod
+): MethodDeclaration {
+  return getExistClassMethodsDeclaration(
+    source,
+    LIFE_CYCLE_CLASS_IDENTIFIER,
+    methodName
+  );
+}
+
 // 获取生命周期类已有的属性
 export function getLifeCycleClassProps(source: SourceFile): string[] {
   return getExistClassProps(source, LIFE_CYCLE_CLASS_IDENTIFIER);

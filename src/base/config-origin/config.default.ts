@@ -24,4 +24,4 @@ export default (appInfo: EggAppInfo) => {
   return config;
 };
 
-export const x: Record<string, unknown> = {};
+export const x = {};

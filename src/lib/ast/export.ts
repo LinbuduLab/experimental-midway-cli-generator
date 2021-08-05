@@ -3,7 +3,10 @@ import {
   SyntaxKind,
   VariableDeclarationKind,
   VariableStatement,
+  ts,
+  TypeNode,
 } from 'ts-morph';
+import { KeywordTypeSyntaxKind } from 'typescript';
 import strip from 'strip-comments';
 import consola from 'consola';
 
@@ -244,4 +247,41 @@ export function addConstExportTypeRef(
 }
 
 // 新增类型断言
-export function addConstExportTypeAssertion() {}
+export function addConstExportTypeAssertion(
+  source: SourceFile,
+  exportVar: string,
+  typeRef: string = 'unknown',
+  apply = true
+) {
+  const targetExport = getExportVariableStatements(source, exportVar);
+
+  const varDec = targetExport
+    .getFirstChildByKind(SyntaxKind.VariableDeclarationList)
+    .getFirstChildByKind(SyntaxKind.SyntaxList)
+    .getFirstChildByKind(SyntaxKind.VariableDeclaration);
+
+  console.log(varDec.getChildren().map(x => x.getKindName()));
+
+  // {} as any -> AsExpression
+
+  if (
+    varDec
+      .getChildren()
+      .map(c => c.getKind())
+      .includes(SyntaxKind.AsExpression)
+  ) {
+    consola.error(`Variable ${exportVar} has type assertion yet.`);
+    process.exit(0);
+  }
+
+  // varDec.getLastChild().replaceWithText()
+
+  // console.log(
+  //   ts.factory.createAsExpression(
+  //     ts.factory.createObjectLiteralExpression([]),
+  //     ts.factory.createKeywordTypeNode(SyntaxKind.AnyKeyword)
+  //   )
+  //   // .getText()
+  // );
+  // const t1 = varDec.getFirstChildByKind(SyntaxKind.ObjectLiteralExpression)
+}

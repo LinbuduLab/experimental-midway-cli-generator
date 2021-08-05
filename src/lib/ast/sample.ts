@@ -4,7 +4,8 @@ import {
   SyntaxKind,
   VariableDeclarationKind,
 } from 'ts-morph';
-import { addConstExportTypeRef } from './export';
+import { addConstExportTypeRef, addConstExportTypeAssertion } from './export';
+import { addPluginUse } from './plugin';
 import * as path from 'path';
 import * as strip from 'strip-comments';
 
@@ -14,8 +15,10 @@ const configSource = project.addSourceFileAtPath(
   path.resolve(__dirname, '../../base/config-origin/config.default.ts')
 );
 
-// const configurationSource = project.addSourceFileAtPath(
-//   path.resolve(__dirname, '../../base/midway-configuration.ts')
-// );
+const configurationSource = project.addSourceFileAtPath(
+  path.resolve(__dirname, '../../base/midway-configuration-origin.ts')
+);
 
-// addConstExportTypeRef(configSource, 'x', 'string');
+// addConstExportTypeAssertion(configSource, 'x', 'string');
+
+addPluginUse(configurationSource, 'xx');

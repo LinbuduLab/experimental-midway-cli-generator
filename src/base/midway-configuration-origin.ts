@@ -1,5 +1,5 @@
 import { App, Configuration } from '@midwayjs/decorator';
-import { ILifeCycle } from '@midwayjs/core';
+import { ILifeCycle, IMidwayApplication } from '@midwayjs/core';
 import { Application } from 'egg';
 import { join } from 'path';
 
