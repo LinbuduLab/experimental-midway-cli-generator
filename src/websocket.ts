@@ -14,12 +14,12 @@ import { names } from './lib/helper';
 import consola from 'consola';
 import chalk from 'chalk';
 import { capitalCase } from './lib/case';
-import { ensureDepsInstalled } from './lib/package';
-import { updateDecoratorArrayArgs } from './lib/ast';
-import { addImportDeclaration, ImportType } from './lib/ast/import';
-
-// init: dep + bootstrap + npm scripts
-// controller
+import { ensureDepsInstalled, addNPMScripts } from './lib/package';
+import {
+  updateDecoratorArrayArgs,
+  addImportDeclaration,
+  ImportType,
+} from './lib/ast';
 
 export enum WebSocketGenerator {
   Setup = 'setup',
@@ -28,6 +28,11 @@ export enum WebSocketGenerator {
 
 const DEFAULT_CONTROLLER_DIR_PATH = 'controller';
 const WS_PKG = ['@midwayjs/ws'];
+
+const scriptKey = 'start:ws';
+
+const scriptValue =
+  'cross-env NODE_ENV=local midway-bin dev --ts --entryFile=ws-bootstrap.js';
 
 const getWSGenPath = (projectDir: string, userDir?: string) => {
   const controllerPath = path.resolve(
@@ -189,8 +194,22 @@ export const useWebSocketGenerator = (cli: CAC) => {
                 outputControllerContent
               );
               fs.writeFileSync(bootstrapFilePath, outputBootstrapContent);
+
+              addNPMScripts(path.resolve(projectDirPath, 'package.json'), [
+                {
+                  script: scriptKey,
+                  content: scriptValue,
+                },
+              ]);
+
+              consola.info(
+                `NPM script added: { ${chalk.cyan(scriptKey)}: ${chalk.cyan(
+                  scriptValue
+                )} }`
+              );
             } else {
               consola.success('WebSocket generator invoked with:');
+
               consola.info(`type: ${chalk.cyan(type)}`);
               consola.info(`name: ${chalk.cyan(name)}`);
               consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
@@ -210,6 +229,12 @@ export const useWebSocketGenerator = (cli: CAC) => {
                 consola.info(
                   `File will be created: ${chalk.green(bootstrapFilePath)}`
                 );
+
+              consola.info(
+                `NPM script added: { ${chalk.cyan(scriptKey)}: ${chalk.cyan(
+                  scriptValue
+                )} }`
+              );
             }
         }
         consola.success('Generator execution accomplished.');
