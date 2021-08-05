@@ -11,14 +11,22 @@ Experimental works for Midway-CLI generator (fragments / components)
 ```bash
 yarn dev c
 yarn dev c user
+yarn dev m mw --framework=koa
 
+yarn dev d
+
+yarn dev sls faas ff --oss --event
+yarn dev sls aggr ag --dry-run
 
 yarn dev orm setup
 yarn dev orm entity user
 yarn dev orm subscriber user --dry-run
 
+yarn dev gql object
 
-
+yarn dev axios
+yarn dev oss
+yarn dev swagger
 ```
 
 ## Serverless
