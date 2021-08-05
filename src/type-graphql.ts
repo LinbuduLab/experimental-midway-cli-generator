@@ -91,6 +91,8 @@ const getTypeGraphQLGenPath = (userDir?: string) => {
   };
 };
 
+const TYPE_GRAPHQL_PKG = ['type-graphql', 'graphql'];
+
 export const useTypeGraphQLGenerator = (cli: CAC) => {
   cli
     .command('graphql <type> [name]', 'TypeGraphQL generatore', {

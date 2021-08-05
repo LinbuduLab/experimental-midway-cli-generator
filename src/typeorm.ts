@@ -15,7 +15,7 @@ import consola from 'consola';
 import chalk from 'chalk';
 import findUp from 'find-up';
 import { capitalCase } from './lib/case';
-import { checkDepExist, installDep } from './lib/package';
+import { checkDepExist, ensureDepsInstalled, installDep } from './lib/package';
 import { addConstExport, updateDecoratorArrayArgs } from './lib/ast';
 import { addImportDeclaration, ImportType } from './lib/ast/import';
 
@@ -44,7 +44,7 @@ export enum TypeORMGenerator {
 
 const DEFAULT_ENTITY_DIR_PATH = 'entity';
 const DEFAULT_SUBSCRIBER_DIR_PATH = 'entity/subscriber';
-const ORM_PKG = '@midwayjs/orm';
+const ORM_PKG = ['@midwayjs/orm', 'sqlite'];
 
 const getTypeORMGenPath = (userDir?: string) => {
   const nearestProjectDir = path.dirname(
@@ -146,12 +146,9 @@ export const useTypeORMGenerator = (cli: CAC) => {
 
             consola.info(`Project location: ${chalk.green(projectDirPath)}`);
 
-            if (!checkDepExist(ORM_PKG, projectDirPath)) {
-              consola.info(`Installing ${chalk.cyan(ORM_PKG)}...`);
-              options.dryRun
-                ? consola.info('`[DryRun]` No deps will be installed.')
-                : installDep(ORM_PKG, false, projectDirPath);
-            }
+            options.dryRun
+              ? consola.info('`[DryRun]` Skip dependencies installation check.')
+              : await ensureDepsInstalled(ORM_PKG, projectDirPath);
 
             const project = new Project();
 

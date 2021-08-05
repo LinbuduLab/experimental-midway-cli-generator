@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import findUp from 'find-up';
 import consola from 'consola';
+import chalk from 'chalk';
 
 export const getNearestPackageFile = (cwd?: string) => {
   return findUp.sync('package.json', {
@@ -74,21 +75,49 @@ export const checkDepExist = (dep: string, cwd = process.cwd()) => {
   return Object.keys(allDeps).includes(dep);
 };
 
+// deps only
+export const ensureDepsInstalled = async (
+  depOrDeps: string | string[],
+  cwd = process.cwd(),
+  asDevDeps = false
+) => {
+  consola.info(`Checking dependencies...`);
+
+  const depsArr = Array.isArray(depOrDeps) ? depOrDeps : [depOrDeps];
+
+  const missingDeps = depsArr.filter(dep => !checkDepExist(dep, cwd));
+
+  consola.info(
+    `Installing missing deps: ${chalk.cyan(missingDeps.join(', '))}...`
+  );
+
+  await installDep(missingDeps, false, cwd);
+};
+
 export const installDep = async (
-  dep: string,
+  dep: string | string[],
   asDevDeps = false,
   cwd = process.cwd()
 ) => {
-  const manager = getManager();
-  const command = `${manager} ${
-    manager === 'yarn' ? 'add' : 'install'
-  } ${dep} ${asDevDeps ? '--save-dev' : '--save'}`;
-  execa.sync(command, {
-    stdio: 'inherit',
-    preferLocal: true,
-    shell: true,
-    cwd,
-  });
+  try {
+    const manager = getManager();
+    const command = `${manager} ${
+      manager === 'yarn' ? 'add' : 'install'
+    } ${(Array.isArray(dep) ? dep : [dep]).join(' ')} ${
+      asDevDeps ? '--save-dev' : '--save'
+    }`;
+
+    await execa(command, {
+      stdio: 'inherit',
+      preferLocal: true,
+      shell: true,
+      cwd,
+    });
+    consola.success('Installation succeed.\n');
+  } catch (error) {
+    consola.fatal('Installation failed.\n');
+    throw error;
+  }
 };
 
 type PkgManager = 'npm' | 'yarn';

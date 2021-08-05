@@ -23,15 +23,15 @@ export const usePrismaGenerator = (cli: CAC) => {
         console.log(consola.info('Executing `prisma init`'));
         const pkg = readPackageSync({ cwd: process.cwd() });
 
-        // if (
-        //   !Object.keys(pkg.dependencies).includes('@prisma/client') ||
-        //   Object.keys(pkg.devDependencies).includes('prisma')
-        // ) {
-        //   consola.error(
-        //     'Make sure you have `@prisma/client` installed as `dependencies`, and `prisma` as `devDependencies`'
-        //   );
-        //   process.exit(0);
-        // }
+        if (
+          !Object.keys(pkg.dependencies).includes('@prisma/client') ||
+          Object.keys(pkg.devDependencies).includes('prisma')
+        ) {
+          consola.error(
+            'Make sure you have `@prisma/client` installed as `dependencies`, and `prisma` as `devDependencies`'
+          );
+          process.exit(0);
+        }
 
         const cwd = process.env.GEN_LOCAL
           ? path.resolve(__dirname, '../project')

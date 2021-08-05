@@ -14,7 +14,7 @@ import findUp from 'find-up';
 import consola from 'consola';
 import { Project } from 'ts-morph';
 import chalk from 'chalk';
-import { checkDepExist, installDep } from './lib/package';
+import { checkDepExist, ensureDepsInstalled, installDep } from './lib/package';
 import {
   addImportDeclaration,
   ImportType,
@@ -46,12 +46,9 @@ export const useSwaggerGenerator = (cli: CAC) => {
 
         consola.info(`Project location: ${chalk.green(projectDirPath)}`);
 
-        if (!checkDepExist(SWAGGER_PKG, projectDirPath)) {
-          consola.info(`Installing ${chalk.cyan(SWAGGER_PKG)}...`);
-          options.dryRun
-            ? consola.info('`[DryRun]` No deps will be installed.')
-            : installDep(SWAGGER_PKG, false, projectDirPath);
-        }
+        options.dryRun
+          ? consola.info('`[DryRun]` Skip dependencies installation check.')
+          : await ensureDepsInstalled(SWAGGER_PKG, projectDirPath);
 
         if (!options.dryRun) {
           consola.info('Source code will be transformed.');

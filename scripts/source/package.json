@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "private": true,
-  "dependencies": {
+  "dependencies1": {
     "@midwayjs/bootstrap": "^2.3.0",
     "@midwayjs/core": "^2.3.0",
     "@midwayjs/web": "^2.3.0",
@@ -11,7 +11,7 @@
     "egg": "^2.0.0",
     "egg-scripts": "^2.10.0"
   },
-  "devDependencies": {
+  "devDependencies1": {
     "@midwayjs/cli": "^1.0.0",
     "@midwayjs/egg-ts-helper": "^1.0.1",
     "@midwayjs/luckyeye": "^1.0.0",
