@@ -149,6 +149,7 @@ export const useServerlessGenerator = (cli: CAC) => {
         );
 
         if (!options.dryRun) {
+          fs.ensureFileSync(finalFilePath);
           fs.writeFileSync(finalFilePath, outputContent);
         } else {
           consola.success('Serverless generator invoked with:');

@@ -46,43 +46,24 @@ const DEFAULT_RESOLVER_DIR_PATH = 'graphql/resolver';
 // 安装type-graphql graphql
 // 确保tsconfig配置正确
 
-const getTypeGraphQLGenPath = (userDir?: string) => {
-  const nearestProjectDir = path.dirname(
-    findUp.sync(['package.json'], {
-      type: 'file',
-    })
+const getTypeGraphQLGenPath = (projectDir: string, userDir?: string) => {
+  const typePath = path.resolve(
+    projectDir,
+    'src',
+    userDir ? userDir : DEFAULT_OBJECT_TYPE_DIR_PATH
   );
 
-  const typePath = process.env.MW_GEN_LOCAL
-    ? path.resolve(__dirname, '../project/src/graphql/type')
-    : path.resolve(
-        nearestProjectDir,
-        'src',
-        userDir ? userDir : DEFAULT_OBJECT_TYPE_DIR_PATH
-      );
+  const middlewarePath = path.resolve(
+    projectDir,
+    'src',
+    userDir ? userDir : DEFAULT_MIDDLEWARE_DIR_PATH
+  );
 
-  const middlewarePath = process.env.MW_GEN_LOCAL
-    ? path.resolve(__dirname, '../project/src/graphql/middleware')
-    : path.resolve(
-        nearestProjectDir,
-        'src',
-        userDir ? userDir : DEFAULT_MIDDLEWARE_DIR_PATH
-      );
-
-  const resolverPath = process.env.MW_GEN_LOCAL
-    ? path.resolve(__dirname, '../project/src/graphql/resolver')
-    : path.resolve(
-        nearestProjectDir,
-        'src',
-        userDir ? userDir : DEFAULT_RESOLVER_DIR_PATH
-      );
-
-  if (process.env.MW_GEN_LOCAL) {
-    consola.info('Using local project:');
-    consola.info(`typePath: ${typePath}`);
-    consola.info(`middlewarePath: ${middlewarePath}`);
-    consola.info(`resolverPath: ${resolverPath}`);
-  }
+  const resolverPath = path.resolve(
+    projectDir,
+    'src',
+    userDir ? userDir : DEFAULT_RESOLVER_DIR_PATH
+  );
 
   return {
     typePath,
@@ -149,8 +130,14 @@ export const useTypeGraphQLGenerator = (cli: CAC) => {
         let finalFilePath: string;
         let finalFileContent: string;
 
-        const nameNames = names(name);
-        const fileNameNames = names(options.fileName ?? name);
+        const nameNames = names(name ?? '');
+        const fileNameNames = names(options.fileName ?? name ?? '');
+
+        const projectDirPath = process.env.GEN_LOCAL
+          ? path.resolve(__dirname, '../project')
+          : process.cwd();
+
+        consola.info(`Project location: ${chalk.green(projectDirPath)}`);
 
         switch (type.toLocaleUpperCase()) {
           case TypeGraphQLGenerator.SETUP:
@@ -183,7 +170,10 @@ export const useTypeGraphQLGenerator = (cli: CAC) => {
               orm: options.orm,
             });
 
-            const { typePath } = getTypeGraphQLGenPath(options.dir);
+            const { typePath } = getTypeGraphQLGenPath(
+              projectDirPath,
+              options.dir
+            );
 
             const outputContentObjType = prettier.format(templateObjType, {
               parser: 'typescript',
@@ -226,7 +216,10 @@ export const useTypeGraphQLGenerator = (cli: CAC) => {
               parser: 'typescript',
             });
 
-            const { middlewarePath } = getTypeGraphQLGenPath(options.dir);
+            const { middlewarePath } = getTypeGraphQLGenPath(
+              projectDirPath,
+              options.dir
+            );
 
             finalFilePath = path.resolve(
               middlewarePath,
@@ -278,6 +271,7 @@ export const useTypeGraphQLGenerator = (cli: CAC) => {
         }
 
         if (!options.dryRun) {
+          fs.ensureFileSync(finalFilePath);
           fs.writeFileSync(finalFilePath, finalFileContent);
         } else {
           consola.success('TypeGraphQL generator invoked with:');

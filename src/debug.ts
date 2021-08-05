@@ -105,6 +105,7 @@ export const useDebuggerGenerator = (cli: CAC) => {
         }
 
         if (!options.dryRun) {
+          fs.ensureFileSync(generatedPath);
           fs.writeFileSync(
             generatedPath,
             prettier.format(JSON.stringify(writeContent), { parser: 'json' })
