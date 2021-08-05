@@ -6,8 +6,10 @@
   "author": "Linbudu <48507806+linbudu599@users.noreply.github.com>",
   "license": "MIT",
   "scripts": {
-    "dev": "cross-env GEN_LOCAL=true tsnd --respawn --transpile-only  ./src/index.ts",
+    "dev": "yarn reset && cross-env GEN_LOCAL=true tsnd --transpile-only  ./src/index.ts",
+    "dev:w": "yarn reset && cross-env GEN_LOCAL=true tsnd --respawn --transpile-only  ./src/index.ts",
     "ast": "tsnd --respawn --transpile-only ./src/lib/ast/sample.ts",
+    "reset": "tsnd --transpile-only ./scripts/reset.ts",
     "test": "jest",
     "test:watch": "jest --watch"
   },
@@ -53,6 +55,7 @@
     "@types/strip-comments": "^2.0.1",
     "@types/yargs": "^17.0.2",
     "clet": "^0.5.0",
+    "cpy": "^8.1.2",
     "jest": "^27.0.6",
     "ts-jest": "^27.0.4",
     "ts-node": "^10.1.0"

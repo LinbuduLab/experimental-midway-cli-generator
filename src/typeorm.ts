@@ -44,6 +44,7 @@ export enum TypeORMGenerator {
 
 const DEFAULT_ENTITY_DIR_PATH = 'entity';
 const DEFAULT_SUBSCRIBER_DIR_PATH = 'entity/subscriber';
+const ORM_PKG = '@midwayjs/orm';
 
 const getTypeORMGenPath = (userDir?: string) => {
   const nearestProjectDir = path.dirname(
@@ -138,13 +139,16 @@ export const useTypeORMGenerator = (cli: CAC) => {
 
       switch (type.toLocaleUpperCase()) {
         case TypeORMGenerator.SETUP:
-          if (!checkDepExist('@midwayjs/orm')) {
-            installDep('@midwayjs/orm');
-          }
-
           const projectDirPath = process.env.GEN_LOCAL
             ? path.resolve(__dirname, '../project')
             : process.cwd();
+
+          if (!checkDepExist(ORM_PKG, projectDirPath)) {
+            consola.info(`Installing ${chalk.cyan(ORM_PKG)}...`);
+            options.dryRun
+              ? consola.info('`[DryRun]` No deps will be installed.')
+              : installDep(ORM_PKG, false, projectDirPath);
+          }
 
           const project = new Project();
 
@@ -160,29 +164,34 @@ export const useTypeORMGenerator = (cli: CAC) => {
             './src/configuration.ts'
           );
 
-          // 新增export const orm = {}
-          addConstExport(configSource, 'orm', { type: 'sqlite' });
+          if (!options.dryRun) {
+            consola.info('Source code will be transformed.');
+            // 新增export const orm = {}
+            addConstExport(configSource, 'orm', { type: 'sqlite' });
 
-          formatTSFile(configPath);
+            formatTSFile(configPath);
 
-          const configurationSource =
-            project.addSourceFileAtPath(configurationPath);
+            const configurationSource =
+              project.addSourceFileAtPath(configurationPath);
 
-          addImportDeclaration(
-            configurationSource,
-            'orm',
-            '@midwayjs/orm',
-            ImportType.NAMESPACE_IMPORT
-          );
+            addImportDeclaration(
+              configurationSource,
+              'orm',
+              '@midwayjs/orm',
+              ImportType.NAMESPACE_IMPORT
+            );
 
-          updateDecoratorArrayArgs(
-            configurationSource,
-            'Configuration',
-            'imports',
-            'orm'
-          );
+            updateDecoratorArrayArgs(
+              configurationSource,
+              'Configuration',
+              'imports',
+              'orm'
+            );
 
-          formatTSFile(configurationPath);
+            formatTSFile(configurationPath);
+          } else {
+            consola.info('`[DryRun]` Source code will be transformed.');
+          }
 
           break;
 
@@ -291,10 +300,12 @@ export const useTypeORMGenerator = (cli: CAC) => {
         }
 
         consola.info(`dot name: ${chalk.cyan(options.dotName)}`);
-        consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
-        consola.info(`dir: ${chalk.cyan(options.dir)}`);
+        fileNameNames.fileName &&
+          consola.info(`file name: ${chalk.cyan(fileNameNames.fileName)}`);
+        options.dir && consola.info(`dir: ${chalk.cyan(options.dir)}`);
 
-        consola.info(`File will be created: ${chalk.green(finalFilePath)}`);
+        finalFilePath &&
+          consola.info(`File will be created: ${chalk.green(finalFilePath)}`);
       }
     });
 };

@@ -13,12 +13,15 @@ import { names } from './lib/helper';
 import findUp from 'find-up';
 import consola from 'consola';
 import { Project } from 'ts-morph';
+import chalk from 'chalk';
 import { checkDepExist, installDep } from './lib/package';
 import {
   addImportDeclaration,
   ImportType,
   updateDecoratorArrayArgs,
 } from './lib/ast';
+
+const SWAGGER_PKG = '@midwayjs/swagger';
 
 export const useSwaggerGenerator = (cli: CAC) => {
   cli
@@ -30,9 +33,16 @@ export const useSwaggerGenerator = (cli: CAC) => {
     })
     .option('--dry-run [dryRun]', 'Dry run to see what is happening')
     .action(async options => {
+      if (options.dryRun) {
+        consola.success('Executing in `dry run` mode, nothing will happen.');
+      }
+
       options.localOnly = ensureBooleanType(options.localOnly);
-      if (!checkDepExist('@midwayjs/swagger')) {
-        installDep('@midwayjs/swagger');
+      if (!checkDepExist(SWAGGER_PKG)) {
+        consola.info(`Installing ${chalk.cyan(SWAGGER_PKG)}...`);
+        options.dryRun
+          ? consola.info('`[DryRun]` No deps will be installed.')
+          : installDep(SWAGGER_PKG);
       }
 
       const projectDirPath = process.env.GEN_LOCAL

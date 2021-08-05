@@ -62,9 +62,9 @@ export const addNPMScripts = (pkgPath: string, scriptMap: NPMScriptMap[]) => {
   );
 };
 
-export const checkDepExist = (dep: string) => {
+export const checkDepExist = (dep: string, cwd = process.cwd()) => {
   const pkg: DepRecord = JSON.parse(
-    fs.readFileSync(getNearestPackageFile(), 'utf-8')
+    fs.readFileSync(getNearestPackageFile(cwd), 'utf-8')
   );
   const allDeps = {
     ...pkg.dependencies,
@@ -74,7 +74,11 @@ export const checkDepExist = (dep: string) => {
   return Object.keys(allDeps).includes(dep);
 };
 
-export const installDep = async (dep: string, asDevDeps = false) => {
+export const installDep = async (
+  dep: string,
+  asDevDeps = false,
+  cwd = process.cwd()
+) => {
   const manager = getManager();
   const command = `${manager} ${
     manager === 'yarn' ? 'add' : 'install'
@@ -83,6 +87,7 @@ export const installDep = async (dep: string, asDevDeps = false) => {
     stdio: 'inherit',
     preferLocal: true,
     shell: true,
+    cwd,
   });
 };
 
