@@ -12,6 +12,7 @@ import { usePrismaGenerator } from './prisma';
 import { useSwaggerGenerator } from './swagger';
 import { useAxiosGenerator } from './axios';
 import { useCacheGenerator } from './cache';
+import { useOSSGenerator } from './oss';
 
 const cli = cac();
 
@@ -29,5 +30,6 @@ usePrismaGenerator(cli);
 useSwaggerGenerator(cli);
 useAxiosGenerator(cli);
 useCacheGenerator(cli);
+useOSSGenerator(cli);
 
 cli.parse();

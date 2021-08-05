@@ -56,8 +56,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@midwayjs/cache": "^2.12.1",
-    "@types/cache-manager": "^3.4.2",
-    "cache-manager": "^3.4.4"
+    "@midwayjs/oss": "^2.12.1",
+    "@types/ali-oss": "^6.0.10"
   }
 }

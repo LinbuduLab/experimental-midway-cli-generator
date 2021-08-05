@@ -2,10 +2,10 @@ import { App, Configuration } from "@midwayjs/decorator";
 import { ILifeCycle } from "@midwayjs/core";
 import { Application } from "egg";
 import { join } from "path";
-import * as cache from "@midwayjs/cache";
+import * as oss from "@midwayjs/oss";
 
 @Configuration({
-  imports: [cache],
+  imports: [oss],
   importConfigs: [join(__dirname, "./config")],
   conflictCheck: true,
 })
