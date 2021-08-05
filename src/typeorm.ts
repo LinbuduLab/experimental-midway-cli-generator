@@ -46,34 +46,18 @@ const DEFAULT_ENTITY_DIR_PATH = 'entity';
 const DEFAULT_SUBSCRIBER_DIR_PATH = 'entity/subscriber';
 const ORM_PKG = ['@midwayjs/orm', 'sqlite'];
 
-const getTypeORMGenPath = (userDir?: string) => {
-  const nearestProjectDir = path.dirname(
-    findUp.sync(['package.json'], {
-      type: 'file',
-    })
+const getTypeORMGenPath = (projectDir: string, userDir?: string) => {
+  const entityPath = path.resolve(
+    projectDir,
+    'src',
+    userDir ? userDir : DEFAULT_ENTITY_DIR_PATH
   );
 
-  const entityPath = process.env.MW_GEN_LOCAL
-    ? path.resolve(__dirname, '../project/src/entity')
-    : path.resolve(
-        nearestProjectDir,
-        'src',
-        userDir ? userDir : DEFAULT_ENTITY_DIR_PATH
-      );
-
-  const subscriberPath = process.env.MW_GEN_LOCAL
-    ? path.resolve(__dirname, '../project/src/entity/subscriber')
-    : path.resolve(
-        nearestProjectDir,
-        'src',
-        userDir ? userDir : DEFAULT_SUBSCRIBER_DIR_PATH
-      );
-
-  if (process.env.MW_GEN_LOCAL) {
-    consola.info('Using local project:');
-    consola.info(`entityPath: ${entityPath}`);
-    consola.info(`subscriberPath: ${subscriberPath}`);
-  }
+  const subscriberPath = path.resolve(
+    projectDir,
+    'src',
+    userDir ? userDir : DEFAULT_SUBSCRIBER_DIR_PATH
+  );
 
   return { entityPath, subscriberPath };
 };
@@ -138,14 +122,14 @@ export const useTypeORMGenerator = (cli: CAC) => {
         const nameNames = names(name ?? '');
         const fileNameNames = names(options.fileName ?? name ?? '');
 
+        const projectDirPath = process.env.GEN_LOCAL
+          ? path.resolve(__dirname, '../project')
+          : process.cwd();
+
+        consola.info(`Project location: ${chalk.green(projectDirPath)}`);
+
         switch (type.toLocaleUpperCase()) {
           case TypeORMGenerator.SETUP:
-            const projectDirPath = process.env.GEN_LOCAL
-              ? path.resolve(__dirname, '../project')
-              : process.cwd();
-
-            consola.info(`Project location: ${chalk.green(projectDirPath)}`);
-
             options.dryRun
               ? consola.info('`[DryRun]` Skip dependencies installation check.')
               : await ensureDepsInstalled(ORM_PKG, projectDirPath);
@@ -225,6 +209,7 @@ export const useTypeORMGenerator = (cli: CAC) => {
             });
 
             const { entityPath: entityDirPath } = getTypeORMGenPath(
+              projectDirPath,
               options.dir
             );
 
@@ -264,6 +249,7 @@ export const useTypeORMGenerator = (cli: CAC) => {
             });
 
             const { subscriberPath: subscriberDirPath } = getTypeORMGenPath(
+              projectDirPath,
               options.dir
             );
 

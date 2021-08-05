@@ -2,10 +2,23 @@
 
 Experimental works for Midway-CLI generator (fragments / components)
 
+## Tmp-Use
+
+本地使用 根目录下的`project`文件夹验证效果（基于环境变量控制）
+
+较稳定的 generator：
+
+```bash
+yarn dev orm setup
+yarn dev orm entity user
+yarn dev orm entity user --dry-run
+
+```
+
 ## Serverless
 
-- [ ] Functions
-- [ ] Aggr functions
+- [x] Functions
+- [x] Aggr functions
 
 ## Fragments
 

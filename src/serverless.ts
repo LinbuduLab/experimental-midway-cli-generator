@@ -86,7 +86,7 @@ export const useServerlessGenerator = (cli: CAC) => {
     .option('--timer [timer]', 'Add timer trigger', {
       default: false,
     })
-    .option('--timer [oss]', 'Add oss trigger', {
+    .option('--oss [oss]', 'Add oss trigger', {
       default: false,
     })
     .option('--file-name [fileName]', 'File name')
