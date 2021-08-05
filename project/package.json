@@ -54,9 +54,5 @@
     "url": ""
   },
   "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "@midwayjs/oss": "^2.12.1",
-    "@types/ali-oss": "^6.0.10"
-  }
+  "license": "MIT"
 }
