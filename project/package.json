@@ -54,8 +54,5 @@
     "url": ""
   },
   "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "@midwayjs/swagger": "^1.0.7"
-  }
+  "license": "MIT"
 }

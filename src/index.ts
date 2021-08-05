@@ -10,6 +10,7 @@ import { useTypeORMGenerator } from './typeorm';
 import { useTypeGraphQLGenerator } from './type-graphql';
 import { usePrismaGenerator } from './prisma';
 import { useSwaggerGenerator } from './swagger';
+import { useAxiosGenerator } from './axios';
 
 const cli = cac();
 
@@ -25,5 +26,6 @@ useTypeORMGenerator(cli);
 useTypeGraphQLGenerator(cli);
 usePrismaGenerator(cli);
 useSwaggerGenerator(cli);
+useAxiosGenerator(cli);
 
 cli.parse();
