@@ -86,6 +86,12 @@ export const ensureDepsInstalled = async (
 
   const missingDeps = depsArr.filter(dep => !checkDepExist(dep, cwd));
 
+  if (!missingDeps.length) {
+    consola.success(`dependencies Installed.`);
+
+    return;
+  }
+
   consola.info(
     `Installing missing deps: ${chalk.cyan(missingDeps.join(', '))} ...`
   );
@@ -103,6 +109,12 @@ export const ensureDevDepsInstalled = async (
   const depsArr = Array.isArray(depOrDeps) ? depOrDeps : [depOrDeps];
 
   const missingDeps = depsArr.filter(dep => !checkDepExist(dep, cwd));
+
+  if (!missingDeps.length) {
+    consola.success(`devDependencies Installed.`);
+
+    return;
+  }
 
   consola.info(
     `Installing missing deps: ${chalk.cyan(missingDeps.join(', '))} ...`

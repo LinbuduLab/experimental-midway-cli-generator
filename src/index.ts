@@ -13,6 +13,7 @@ import { useSwaggerGenerator } from './swagger';
 import { useAxiosGenerator } from './axios';
 import { useCacheGenerator } from './cache';
 import { useOSSGenerator } from './oss';
+import { useWebSocketGenerator } from './websocket';
 
 const cli = cac();
 
@@ -31,5 +32,6 @@ useSwaggerGenerator(cli);
 useAxiosGenerator(cli);
 useCacheGenerator(cli);
 useOSSGenerator(cli);
+useWebSocketGenerator(cli);
 
 cli.parse();

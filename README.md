@@ -29,47 +29,6 @@ yarn dev oss
 yarn dev swagger
 ```
 
-## Serverless
-
-- [x] Functions
-- [x] Aggr functions
-
-## Fragments
-
-- Controller
-  - [x] Light / Full template
-  - [ ] Spec
-- Service
-  - [ ] Spec
-- Middleware
-  - [x] Framework
-  - [x] Third lib / internal implementation
-- Test
-  - Application
-
-## Components
-
-- [ ] TypeORM
-  - [ ] Setup
-  - [x] Entity
-    - [x] Relation
-  - [ ] Configuration
-  - [x] Subscriber
-- [ ] TypeGraphQL
-  - [ ] Setup
-  - [x] ObjectType / InputType / InterfaceType
-  - [x] Resolver / FieldResolver
-  - [ ] Scalar / Enum / Union / Directives / Extensions
-  - [x] Middleware
-  - [ ] TSConfig modification
-- [ ] Prisma
-  - [ ] Setup
-  - [ ] Commands scripts
-  - [ ] GitIgnore modification
-  - [ ] Comments
-- [ ] Cache
-- [ ] Swagger
-
 ## Future
 
 - Virtual-File based dryRun mode(`--dry-run`).
