@@ -43,9 +43,9 @@ export function getExistClassMethodsDeclaration(
   const methods = targetClassItem.getMethods();
 
   if (methodName) {
-    return methods.filter(
+    return methods.find(
       m => m.getFirstChildByKind(SyntaxKind.Identifier).getText() === methodName
-    )[0];
+    );
   } else {
     return methods;
   }

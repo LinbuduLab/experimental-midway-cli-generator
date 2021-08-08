@@ -22,6 +22,29 @@ import {
   MidwayPropDecorator,
 } from './utils';
 
+export function unshiftStatementInsideClassMethod(
+  source: SourceFile,
+  classIdentifier: string,
+  methodIdentifier: string,
+  statement: string,
+  apply = true
+) {
+  const methodDeclaration = getExistClassMethodsDeclaration(
+    source,
+    classIdentifier,
+    methodIdentifier
+  );
+
+  if (!methodDeclaration) {
+    console.log('class or method declaration inexist');
+    return;
+  }
+
+  methodDeclaration.insertStatements(0, statement);
+
+  apply && source.saveSync();
+}
+
 // 获取生命周期类已有的方法
 export function getLifeCycleClassMethods(
   source: SourceFile

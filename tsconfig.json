@@ -15,7 +15,17 @@
     "noImplicitReturns": false,
     "strict": false,
     "noEmitOnError": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "outDir": "build",
+    "declaration": true
   },
-  "exclude": ["dist", "node_modules", "test"]
+  "exclude": [
+    "dist",
+    "node_modules",
+    "test",
+    "src/base",
+    "project",
+    "scripts/*",
+    "jest.config.ts"
+  ]
 }

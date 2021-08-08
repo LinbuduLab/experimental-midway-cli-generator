@@ -1,9 +1,9 @@
-import * as inquirer from 'inquirer';
+import inquirer from 'inquirer';
 import { capitalCase, dotCase, lowerCase, constantCase } from '../case';
-import * as findUp from 'find-up';
-import * as path from 'path';
-import * as fs from 'fs-extra';
-import * as minIndent from 'min-indent';
+import findUp from 'find-up';
+import path from 'path';
+import fs from 'fs-extra';
+import minIndent from 'min-indent';
 import prettier from 'prettier';
 
 import parseJson from 'parse-json';

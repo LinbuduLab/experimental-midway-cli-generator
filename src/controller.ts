@@ -8,7 +8,6 @@ import { inputPromptStringValue } from './lib/helper';
 import { names } from './lib/helper';
 import consola from 'consola';
 import chalk from 'chalk';
-import findUp from 'find-up';
 
 const DEFAULT_CONTROLLER_DIR_PATH = 'controller';
 

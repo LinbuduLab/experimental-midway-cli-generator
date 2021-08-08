@@ -34,4 +34,6 @@ useCacheGenerator(cli);
 useOSSGenerator(cli);
 useWebSocketGenerator(cli);
 
+cli.help();
+
 cli.parse();

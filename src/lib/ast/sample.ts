@@ -5,7 +5,9 @@ import {
   VariableDeclarationKind,
 } from 'ts-morph';
 import { addConstExportTypeRef, addConstExportTypeAssertion } from './export';
+import { appendStatementAfterImports } from './import';
 import { addPluginUse } from './plugin';
+import { unshiftStatementInsideClassMethod } from './configuration';
 import * as path from 'path';
 import * as strip from 'strip-comments';
 
@@ -21,4 +23,24 @@ const configurationSource = project.addSourceFileAtPath(
 
 // addConstExportTypeAssertion(configSource, 'x', 'string');
 
-addPluginUse(configurationSource, 'xx');
+// addPluginUse(configurationSource, 'xx');
+
+// appendStatementAfterImports(configurationSource, 'const x = 1');
+
+// appendStatementsAfterImports(configSource, []);
+
+// unshiftStatementInsideClassMethod(
+//   configurationSource,
+//   'ContainerConfiguration',
+//   'onReady',
+//   `this.app.getApplicationContext().registerObject('prisma', client);`,
+//   false
+// );
+
+// unshiftStatementInsideClassMethod(
+//   configurationSource,
+//   'ContainerConfiguration',
+//   'onReady',
+//   'client.$connect()',
+//   true
+// );
