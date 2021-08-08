@@ -7,6 +7,7 @@ import {
   ensureLifeCycleClassPropertyWithMidwayDecorator,
   getLifeCycleClassMethodDeclaration,
 } from './configuration';
+import { LIFE_CYCLE_CLASS_IDENTIFIER } from './utils';
 
 export function insertFunctionBodyStatement(
   source: SourceFile,
@@ -16,7 +17,7 @@ export function insertFunctionBodyStatement(
 ) {
   const method = getExistClassMethodsDeclaration(
     source,
-    'ContainerConfiguration',
+    LIFE_CYCLE_CLASS_IDENTIFIER,
     functionIdentifier
   );
 

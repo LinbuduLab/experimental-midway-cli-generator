@@ -28,19 +28,3 @@ const configurationSource = project.addSourceFileAtPath(
 // appendStatementAfterImports(configurationSource, 'const x = 1');
 
 // appendStatementsAfterImports(configSource, []);
-
-// unshiftStatementInsideClassMethod(
-//   configurationSource,
-//   'ContainerConfiguration',
-//   'onReady',
-//   `this.app.getApplicationContext().registerObject('prisma', client);`,
-//   false
-// );
-
-// unshiftStatementInsideClassMethod(
-//   configurationSource,
-//   'ContainerConfiguration',
-//   'onReady',
-//   'client.$connect()',
-//   true
-// );
