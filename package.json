@@ -40,7 +40,7 @@
     "minimatch": "^3.0.4",
     "mwts": "^1.2.2",
     "ora": "^5.4.1",
-    "prisma": "^2.28.0",
+    "prisma": "^2.29.0",
     "read-pkg": "^6.0.0",
     "strip-comments": "^2.0.1",
     "strip-indent": "^4.0.0",
